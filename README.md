@@ -52,8 +52,11 @@ A powerful IntelliJ IDEA plugin that provides a visual interface for **Claude Co
 - Code DIFF comparison feature
 - File navigation and code jumping
 - Dark/Light theme switching
-- Font scaling and IDE font synchronization
+- IDE font synchronization
+- Main content font scaling without shrinking the whole plugin layout
 - IDE background image transparency support, with adjustable opacity for panels, menus, inputs, message bubbles, and Markdown preview
+- Compact title bar to save vertical space
+- Status panel collapsed by default for new sessions
 - Internationalization support (auto-switch between Chinese/English)
 
 ### Session Management
