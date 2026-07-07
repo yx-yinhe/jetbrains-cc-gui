@@ -356,6 +356,64 @@
   margin-bottom: 24px;
 }
 
+.opacitySection {
+  margin-bottom: 24px;
+}
+
+.opacityGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.opacityControl {
+  padding: 10px 12px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+}
+
+.opacityControlHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+
+  .codicon {
+    color: var(--accent-primary);
+    font-size: 14px;
+  }
+}
+
+.opacityLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.opacityValue {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-family: var(--idea-editor-font-family, monospace);
+}
+
+.opacitySlider {
+  width: 100%;
+  accent-color: var(--accent-primary);
+}
+
+.opacityHint {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+}
+
 .editorFontSection {
   margin-bottom: 24px;
 }

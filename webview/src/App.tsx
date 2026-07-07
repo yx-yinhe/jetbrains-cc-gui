@@ -98,8 +98,20 @@ const App = () => {
 
   // StatusPanel collapse state — kept in App.tsx because forceStatusUpdate is
   // intentionally local: a tiny re-render trigger paired with userCollapsedRef.
-  const userCollapsedRef = useRef(false);
+  const userCollapsedRef = useRef(true);
   const [, forceStatusUpdate] = useState(0);
+  const collapseStatusPanel = useCallback(() => {
+    if (!userCollapsedRef.current) {
+      userCollapsedRef.current = true;
+      forceStatusUpdate((c) => c + 1);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (messages.length === 0 && !loading && !streamingActive) {
+      collapseStatusPanel();
+    }
+  }, [messages.length, loading, streamingActive, collapseStatusPanel]);
 
   // Message anchor node registry for anchor rail navigation
   const messageNodeMapRef = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -266,6 +278,11 @@ const App = () => {
     clearToasts, addToast, t,
   });
 
+  const createNewSessionCollapsed = useCallback(() => {
+    collapseStatusPanel();
+    createNewSession();
+  }, [collapseStatusPanel, createNewSession]);
+
   useHistoryLoader({ currentView, currentProvider });
 
   // ── Window callbacks (bridge communication) ──
@@ -313,9 +330,10 @@ const App = () => {
   // Wrap handleProviderSelect to also clear messages and input (like creating a new session)
   const wrappedHandleProviderSelect = useCallback((providerId: string) => {
     chatInputRef.current?.clear();
+    collapseStatusPanel();
     handleProviderSelect(providerId);
     forceCreateNewSessionWithProvider(providerId);
-  }, [forceCreateNewSessionWithProvider, handleProviderSelect]);
+  }, [collapseStatusPanel, forceCreateNewSessionWithProvider, handleProviderSelect]);
 
   const {
     handleSubmit: hookHandleSubmit,
@@ -427,7 +445,7 @@ const App = () => {
         sessionTitle={sessionTitle}
         t={t}
         onBack={() => setCurrentView('chat')}
-        onNewSession={createNewSession}
+        onNewSession={createNewSessionCollapsed}
         onNewTab={() => sendBridgeEvent('create_new_tab')}
         onHistory={() => setCurrentView('history')}
         onSettings={() => {

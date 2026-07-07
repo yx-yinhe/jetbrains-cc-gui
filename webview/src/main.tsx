@@ -126,23 +126,7 @@ if (enableVConsole) {
 function setupScaleRecovery() {
   type CSSStyleDeclarationWithZoom = CSSStyleDeclaration & { zoom: string };
 
-  const getExpectedScale = (): string => {
-    const fromCss = getComputedStyle(document.documentElement).getPropertyValue('--font-scale').trim();
-    if (fromCss) return fromCss;
-
-    const savedLevel = localStorage.getItem('fontSizeLevel');
-    const level = savedLevel ? parseInt(savedLevel, 10) : 3;
-    const fontSizeLevel = level >= 1 && level <= 6 ? level : 3;
-    const fontSizeMap: Record<number, number> = {
-      1: 0.8,
-      2: 0.9,
-      3: 1.0,
-      4: 1.1,
-      5: 1.2,
-      6: 1.4,
-    };
-    return String(fontSizeMap[fontSizeLevel] || 1.0);
-  };
+  const getExpectedScale = (): string => '1';
 
   let hiddenAt: number | null = null;
   let lastRecoveryAt = 0;

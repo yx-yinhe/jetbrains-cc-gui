@@ -111,6 +111,7 @@ public class ClaudeChatWindow {
         this.htmlLoader = new HtmlLoader(getClass());
         this.mainPanel = new JPanel(new BorderLayout());
 
+        this.mainPanel.setOpaque(false);
         this.mainPanel.setBackground(com.github.claudecodegui.util.ThemeConfigService.getBackgroundColor());
 
         this.streamCoalescer = new StreamMessageCoalescer(new StreamMessageCoalescer.JsCallbackTarget() {

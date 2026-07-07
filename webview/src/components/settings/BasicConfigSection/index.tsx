@@ -2,6 +2,7 @@ import { useState } from 'react';
 import styles from './style.module.less';
 import { useTranslation } from 'react-i18next';
 import type { DiffThemeMode } from '../../../utils/diffTheme';
+import type { AppearanceOpacitySettings } from '../../../utils/appearance';
 import type { UiFontConfig, CodeFontConfig } from '../hooks/useSettingsBasicActions';
 import AppearanceTab from './AppearanceTab';
 import BehaviorTab from './BehaviorTab';
@@ -62,6 +63,9 @@ interface BasicConfigSectionProps {
   // User message bubble color configuration
   userMsgColor?: string;
   onUserMsgColorChange?: (color: string) => void;
+  // Transparency / opacity configuration
+  appearanceOpacity?: AppearanceOpacitySettings;
+  onAppearanceOpacityChange?: (settings: AppearanceOpacitySettings) => void;
   // Diff theme configuration
   diffTheme?: DiffThemeMode;
   onDiffThemeChange?: (theme: DiffThemeMode) => void;
@@ -143,6 +147,8 @@ const BasicConfigSection = (props: BasicConfigSectionProps) => {
           onChatBgColorChange={props.onChatBgColorChange}
           userMsgColor={props.userMsgColor}
           onUserMsgColorChange={props.onUserMsgColorChange}
+          appearanceOpacity={props.appearanceOpacity}
+          onAppearanceOpacityChange={props.onAppearanceOpacityChange}
           diffTheme={props.diffTheme}
           onDiffThemeChange={props.onDiffThemeChange}
         />

@@ -1,11 +1,22 @@
 // hooks/useSettingsThemeSync.ts
 import { useState, useEffect } from 'react';
 import { applyDiffTheme, getStoredDiffTheme, type DiffThemeMode } from '../../../utils/diffTheme';
+import {
+  applyAppearanceOpacitySettings,
+  applyContentFontScale,
+  applyInitialIdeThemeGlobals,
+  getStoredAppearanceOpacitySettings,
+  normalizeFontSizeLevel,
+  storeAppearanceOpacitySettings,
+  type AppearanceOpacitySettings,
+} from '../../../utils/appearance';
 
 // Extend window type for IDE theme injection
 declare global {
   interface Window {
     __INITIAL_IDE_THEME__?: 'light' | 'dark';
+    __INITIAL_IDE_BACKGROUND_COLOR__?: string;
+    __INITIAL_IDE_TRANSPARENT_BACKGROUND__?: boolean;
   }
 }
 
@@ -20,11 +31,17 @@ export interface UseSettingsThemeSyncReturn {
   setChatBgColor: (color: string) => void;
   userMsgColor: string;
   setUserMsgColor: (color: string) => void;
+  appearanceOpacity: AppearanceOpacitySettings;
+  setAppearanceOpacity: (settings: AppearanceOpacitySettings) => void;
   diffTheme: DiffThemeMode;
   setDiffTheme: (theme: DiffThemeMode) => void;
 }
 
 export function useSettingsThemeSync(): UseSettingsThemeSyncReturn {
+  useEffect(() => {
+    applyInitialIdeThemeGlobals();
+  }, []);
+
   const [themePreference, setThemePreference] = useState<'light' | 'dark' | 'system'>(() => {
     // Read theme preference from localStorage
     const savedTheme = localStorage.getItem('theme');
@@ -69,6 +86,10 @@ export function useSettingsThemeSync(): UseSettingsThemeSyncReturn {
     return '';
   });
 
+  const [appearanceOpacity, setAppearanceOpacity] = useState<AppearanceOpacitySettings>(() =>
+    getStoredAppearanceOpacitySettings()
+  );
+
   // Diff theme configuration
   const [diffTheme, setDiffTheme] = useState<DiffThemeMode>(() => getStoredDiffTheme());
 
@@ -94,19 +115,7 @@ export function useSettingsThemeSync(): UseSettingsThemeSyncReturn {
 
   // Font size scaling handler
   useEffect(() => {
-    // Map level to scale ratio
-    const fontSizeMap: Record<number, number> = {
-      1: 0.8,   // 80%
-      2: 0.9,   // 90% (default)
-      3: 1.0,   // 100%
-      4: 1.1,   // 110%
-      5: 1.2,   // 120%
-      6: 1.4,   // 140%
-    };
-    const scale = fontSizeMap[fontSizeLevel] || 1.0;
-
-    // Apply to root element
-    document.documentElement.style.setProperty('--font-scale', scale.toString());
+    applyContentFontScale(normalizeFontSizeLevel(fontSizeLevel));
 
     // Save to localStorage
     localStorage.setItem('fontSizeLevel', fontSizeLevel.toString());
@@ -126,13 +135,17 @@ export function useSettingsThemeSync(): UseSettingsThemeSyncReturn {
   // User message bubble color handler
   useEffect(() => {
     if (userMsgColor) {
-      document.documentElement.style.setProperty('--color-message-user-bg', userMsgColor);
       localStorage.setItem('userMsgColor', userMsgColor);
     } else {
-      document.documentElement.style.removeProperty('--color-message-user-bg');
       localStorage.removeItem('userMsgColor');
     }
   }, [userMsgColor]);
+
+  // Transparency / opacity handler
+  useEffect(() => {
+    applyAppearanceOpacitySettings(appearanceOpacity, userMsgColor);
+    storeAppearanceOpacitySettings(appearanceOpacity);
+  }, [appearanceOpacity, userMsgColor, themePreference, ideTheme]);
 
   // Diff theme handler
   useEffect(() => {
@@ -150,6 +163,8 @@ export function useSettingsThemeSync(): UseSettingsThemeSyncReturn {
     setChatBgColor,
     userMsgColor,
     setUserMsgColor,
+    appearanceOpacity,
+    setAppearanceOpacity,
     diffTheme,
     setDiffTheme,
   };

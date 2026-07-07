@@ -51,43 +51,41 @@ public class HtmlLoader {
     /**
      * Inject the IDE theme into the HTML.
      *
-     * Strategy: add inline style attributes directly on HTML tags to ensure the background
-     * color is applied on the very first render frame.
-     * 1. Modify the &lt;html&gt; tag to add style="background-color:..."
-     * 2. Modify the &lt;body&gt; tag to add style="background-color:..."
-     * 3. Inject a theme variable script into &lt;head&gt;
-     *
-     * Inline styles are parsed faster than CSS rules, ensuring the correct color appears
-     * on the first CEF render frame.
+     * Strategy: keep the document root transparent so IDE background images can
+     * show through when the JCEF/Swing stack supports transparent composition.
+     * The actual editor background color is still injected as a CSS fallback.
      */
     private String injectIdeTheme(String html) {
         try {
             boolean isDark = ThemeConfigService.getIdeThemeConfig().get("isDark").getAsBoolean();
             String theme = isDark ? "dark" : "light";
-            // Use the unified color values to ensure consistency with Swing component backgrounds
             String bgColor = ThemeConfigService.getBackgroundColorHex();
 
-            // 1. Modify the <html> tag to add inline styles
+            // 1. Modify the <html> tag to stay transparent from the first paint.
             html = html.replaceFirst(
                 "<html([^>]*)>",
-                "<html$1 style=\"background-color:" + bgColor + ";\">"
+                "<html$1 style=\"background-color:transparent;\">"
             );
 
-            // 2. Modify the <body> tag to add inline styles
+            // 2. Modify the <body> tag to stay transparent from the first paint.
             html = html.replaceFirst(
                 "<body([^>]*)>",
-                "<body$1 style=\"background-color:" + bgColor + ";\">"
+                "<body$1 style=\"background-color:transparent;\">"
             );
 
             // 3. Inject a theme variable script after the <head> tag
-            String scriptInjection = "\n    <script>window.__INITIAL_IDE_THEME__ = '" + theme + "';</script>";
+            String scriptInjection = "\n    <script>"
+                    + "window.__INITIAL_IDE_THEME__ = '" + theme + "';"
+                    + "window.__INITIAL_IDE_BACKGROUND_COLOR__ = '" + bgColor + "';"
+                    + "window.__INITIAL_IDE_TRANSPARENT_BACKGROUND__ = true;"
+                    + "</script>";
             int headIndex = html.indexOf("<head>");
             if (headIndex != -1) {
                 int insertPos = headIndex + "<head>".length();
                 html = html.substring(0, insertPos) + scriptInjection + html.substring(insertPos);
             }
 
-            LOG.info("Successfully injected IDE theme (inline styles): " + theme + ", background: " + bgColor);
+            LOG.info("Successfully injected IDE theme: " + theme + ", editor background: " + bgColor);
         } catch (Exception e) {
             LOG.error("Failed to inject IDE theme: " + e.getMessage(), e);
         }

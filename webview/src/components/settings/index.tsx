@@ -102,6 +102,8 @@ const SettingsView = ({
     setChatBgColor,
     userMsgColor,
     setUserMsgColor,
+    appearanceOpacity,
+    setAppearanceOpacity,
     diffTheme,
     setDiffTheme,
   } = useSettingsThemeSync();
@@ -493,6 +495,8 @@ const SettingsView = ({
               onChatBgColorChange={setChatBgColor}
               userMsgColor={userMsgColor}
               onUserMsgColorChange={setUserMsgColor}
+              appearanceOpacity={appearanceOpacity}
+              onAppearanceOpacityChange={setAppearanceOpacity}
               diffTheme={diffTheme}
               onDiffThemeChange={setDiffTheme}
               diffExpandedByDefault={diffExpandedByDefault}

@@ -99,7 +99,7 @@
 .context-item {
   display: flex;
   align-items: center;
-  background: var(--dropdown-bg);
+  background: var(--cc-gui-surface-bg, var(--dropdown-bg));
   border: 1px solid var(--input-border);
   border-radius: 4px;
   padding: 1px 6px;
@@ -364,4 +364,3 @@ button.context-file-placeholder:focus-visible {
     transform: translateY(0);
   }
 }
-

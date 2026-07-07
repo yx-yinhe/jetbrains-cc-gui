@@ -203,6 +203,7 @@
 
 .selector-option:hover {
   background: var(--dropdown-hover);
+  color: var(--text-primary);
 }
 
 .selector-option.selected {
@@ -238,7 +239,7 @@
   padding: 5px 8px;
   border: 1px solid var(--dropdown-border);
   border-radius: 4px;
-  background: var(--input-bg);
+  background: var(--cc-gui-input-bg, var(--input-bg));
   color: var(--text-primary);
   font-size: 12px;
   font-family: inherit;
@@ -307,7 +308,7 @@
 }
 
 .node-process-icon-button:hover:not(:disabled) {
-  background: var(--button-hover);
+  background: var(--dropdown-hover);
 }
 
 .node-process-icon-button:disabled {

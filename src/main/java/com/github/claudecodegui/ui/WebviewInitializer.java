@@ -372,8 +372,12 @@ public class WebviewInitializer {
 
             JComponent browserComponent = browser.getComponent();
 
-            // Set webview container background color to prevent white flash before HTML loads.
-            browserComponent.setBackground(ThemeConfigService.getBackgroundColor());
+            // Let Rider's own background painter show through when JCEF supports transparent composition.
+            // Keep a real editor background color as a fallback for render stacks that ignore transparency.
+            browserComponent.setOpaque(false);
+            browserComponent.setBackground(ThemeConfigService.TRANSPARENT_BG_COLOR);
+            mainPanel.setOpaque(false);
+            mainPanel.setBackground(ThemeConfigService.getBackgroundColor());
 
             // Add drag-and-drop support - get full file paths
             new DropTarget(browserComponent, new DropTargetAdapter() {

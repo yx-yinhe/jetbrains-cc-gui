@@ -2,6 +2,8 @@ package com.github.claudecodegui.util;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.ui.JBColor;
@@ -31,8 +33,10 @@ public class ThemeConfigService {
     public static final Color LIGHT_BG_COLOR = Color.WHITE;             // #ffffff
     public static final String DARK_BG_HEX = "#1e1e1e";
     public static final String LIGHT_BG_HEX = "#ffffff";
+    public static final Color TRANSPARENT_BG_COLOR = new Color(0, 0, 0, 0);
     private static ThemeChangeCallback themeChangeCallback = null;
     private static Boolean lastKnownIsDark = null; // Cache the last known theme state for deduplication
+    private static String lastKnownBackgroundHex = null;
     private static boolean listenerRegistered = false;
 
     /**
@@ -107,16 +111,22 @@ public class ThemeConfigService {
         try {
             JsonObject config = getIdeThemeConfig();
             boolean currentIsDark = config.get("isDark").getAsBoolean();
+            String currentBackgroundHex = config.get("backgroundColor").getAsString();
 
             // Deduplicate: skip notification if the theme state hasn't changed
-            if (lastKnownIsDark != null && lastKnownIsDark == currentIsDark) {
-                LOG.debug("[ThemeConfig] Theme state unchanged (isDark=" + currentIsDark + "), skipping notification");
+            if (lastKnownIsDark != null
+                    && lastKnownIsDark == currentIsDark
+                    && currentBackgroundHex.equals(lastKnownBackgroundHex)) {
+                LOG.debug("[ThemeConfig] Theme state unchanged (isDark=" + currentIsDark
+                        + ", background=" + currentBackgroundHex + "), skipping notification");
                 return;
             }
 
             // Update cache and notify
             lastKnownIsDark = currentIsDark;
-            LOG.info("[ThemeConfig] Theme changed to: " + (currentIsDark ? "DARK" : "LIGHT") + ", notifying webview");
+            lastKnownBackgroundHex = currentBackgroundHex;
+            LOG.info("[ThemeConfig] Theme changed to: " + (currentIsDark ? "DARK" : "LIGHT")
+                    + ", background=" + currentBackgroundHex + ", notifying webview");
             themeChangeCallback.onThemeChanged(config);
         } catch (Exception e) {
             LOG.error("[ThemeConfig] Failed to notify theme change: " + e.getMessage(), e);
@@ -140,11 +150,15 @@ public class ThemeConfigService {
             boolean isDark = !JBColor.isBright();
 
             config.addProperty("isDark", isDark);
+            config.addProperty("backgroundColor", getBackgroundColorHex());
+            config.addProperty("transparentBackground", true);
 
             LOG.debug("[ThemeConfig] Retrieved IDE theme config: isDark=" + isDark);
         } catch (Exception e) {
             // Fall back to default (dark) on exception
             config.addProperty("isDark", true);
+            config.addProperty("backgroundColor", DARK_BG_HEX);
+            config.addProperty("transparentBackground", true);
             LOG.error("[ThemeConfig] Failed to get theme config, using default (dark): " + e.getMessage(), e);
         }
 
@@ -163,6 +177,7 @@ public class ThemeConfigService {
         // Update cache to ensure accurate subsequent change detection
         // After initial load, only actual changes will trigger notifications
         lastKnownIsDark = config.get("isDark").getAsBoolean();
+        lastKnownBackgroundHex = config.get("backgroundColor").getAsString();
 
         return new Gson().toJson(config);
     }
@@ -175,7 +190,11 @@ public class ThemeConfigService {
      */
     public static Color getBackgroundColor() {
         try {
-            boolean isDark = getIdeThemeConfig().get("isDark").getAsBoolean();
+            Color editorBackground = getEditorBackgroundColor();
+            if (editorBackground != null) {
+                return editorBackground;
+            }
+            boolean isDark = !JBColor.isBright();
             return isDark ? DARK_BG_COLOR : LIGHT_BG_COLOR;
         } catch (Exception e) {
             LOG.warn("Failed to get theme background color, using dark as fallback: " + e.getMessage());
@@ -191,11 +210,24 @@ public class ThemeConfigService {
      */
     public static String getBackgroundColorHex() {
         try {
-            boolean isDark = getIdeThemeConfig().get("isDark").getAsBoolean();
-            return isDark ? DARK_BG_HEX : LIGHT_BG_HEX;
+            return toHex(getBackgroundColor());
         } catch (Exception e) {
             LOG.warn("Failed to get theme background color hex, using dark as fallback: " + e.getMessage());
             return DARK_BG_HEX;
         }
+    }
+
+    private static Color getEditorBackgroundColor() {
+        try {
+            EditorColorsScheme scheme = EditorColorsManager.getInstance().getGlobalScheme();
+            return scheme != null ? scheme.getDefaultBackground() : null;
+        } catch (Exception e) {
+            LOG.warn("Failed to read editor background color: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private static String toHex(Color color) {
+        return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
     }
 }

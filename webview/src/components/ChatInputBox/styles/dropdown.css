@@ -27,6 +27,7 @@
 .dropdown-item:hover,
 .dropdown-item.active {
   background: var(--dropdown-hover);
+  color: var(--text-primary);
 }
 
 .dropdown-item.selected {
@@ -115,4 +116,3 @@
   color: var(--text-secondary);
   font-size: 12px;
 }
-

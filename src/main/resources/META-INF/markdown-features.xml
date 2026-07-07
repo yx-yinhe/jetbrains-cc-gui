@@ -1,0 +1,6 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="org.intellij.markdown">
+        <browserPreviewExtensionProvider
+                implementation="com.github.claudecodegui.markdown.TransparentMarkdownPreviewExtension$Provider"/>
+    </extensions>
+</idea-plugin>

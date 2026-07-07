@@ -35,7 +35,7 @@
 /* Bash命令块样式 */
 .bash-tool-header {
     border-bottom: none;
-    background: var(--bg-primary);
+    background: var(--cc-gui-surface-bg-soft, var(--bg-primary));
 }
 
 .bash-tool-header.expanded {
@@ -132,7 +132,7 @@
 .bash-tool-content {
     display: flex;
     flex-direction: column;
-    background: var(--bg-primary);
+    background: transparent;
     position: relative;
 }
 
@@ -147,7 +147,7 @@
 }
 
 .bash-command-block {
-    background: var(--bg-secondary);
+    background: var(--cc-gui-code-block-bg, var(--bg-secondary));
     border: 1px solid var(--border-primary);
     border-radius: 6px;
     padding: 10px 12px;
@@ -230,7 +230,7 @@
 
 /* 亮色模式下 Bash 块的额外适配 */
 [data-theme="light"] .bash-command-block {
-    background: #f5f5f5;
+    background: var(--cc-gui-code-block-bg, #f5f5f5);
     border: 1px solid #d0d0d0;
 }
 
@@ -366,11 +366,11 @@
 }
 
 .bash-timeline-content:hover {
-    background-color: var(--bg-secondary);
+    background-color: var(--cc-gui-surface-bg, var(--bg-secondary));
 }
 
 .bash-timeline-content.expanded {
-    background-color: var(--bg-secondary);
+    background-color: var(--cc-gui-surface-bg, var(--bg-secondary));
 }
 
 /* 时间线行 */
@@ -420,9 +420,9 @@
 
 /* 亮色模式适配 */
 [data-theme="light"] .bash-timeline-content:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: var(--cc-gui-surface-bg, rgba(0, 0, 0, 0.04));
 }
 
 [data-theme="light"] .bash-timeline-content.expanded {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: var(--cc-gui-surface-bg, rgba(0, 0, 0, 0.04));
 }

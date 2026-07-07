@@ -141,7 +141,7 @@
     right: 8px;
     width: 28px;
     height: 28px;
-    background: var(--bg-secondary);
+    background: var(--cc-gui-surface-bg, var(--bg-secondary));
     border: 1px solid var(--border-primary);
     border-radius: 4px;
     cursor: pointer;
@@ -156,7 +156,7 @@
     visibility: hidden;
 
     &:hover {
-        background: var(--bg-hover);
+        background: var(--cc-gui-surface-bg-strong, var(--bg-hover));
         color: var(--text-primary);
         border-color: var(--border-hover);
     }
@@ -171,7 +171,7 @@
         position: absolute;
         top: -30px;
         right: 0;
-        background: var(--bg-elevated);
+        background: var(--cc-gui-surface-bg-strong, var(--bg-elevated));
         color: var(--text-primary);
         border: 1px solid var(--border-secondary);
         box-shadow: var(--shadow-sm);
@@ -451,7 +451,7 @@
     display: flex;
     align-items: stretch;
     gap: 0;
-    background: var(--bg-code, rgba(0, 0, 0, 0.25));
+    background: var(--cc-gui-code-block-bg, var(--bg-code, rgba(0, 0, 0, 0.25)));
     border: 1px solid var(--color-provider-card-border);
     border-radius: 6px;
     overflow: hidden;
@@ -579,7 +579,7 @@
 
 /* Message Content */
 .message-content {
-    font-size: var(--idea-editor-font-size, 13.5px);
+    font-size: var(--cc-gui-content-font-size, var(--idea-editor-font-size, 13.5px));
     line-height: 1.6;
     color: var(--text-primary);
     min-width: 0; /* Allow flex items to shrink below content size */
@@ -600,8 +600,8 @@
 
 /* Markdown Content */
 .markdown-content {
-    font-size: var(--idea-editor-font-size, 13.5px);
-    line-height: 1.6;
+    font-size: var(--cc-gui-content-font-size, var(--idea-editor-font-size, 13.5px));
+    line-height: var(--cc-gui-content-line-height, 1.6);
     color: var(--text-primary);
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -634,7 +634,7 @@
     overflow-x: auto;
     margin: 10px 0;
     font-family: var(--cc-gui-code-font-family, var(--idea-editor-font-family, 'JetBrains Mono', 'Consolas', monospace));
-    font-size: var(--idea-editor-font-size, 12.5px);
+    font-size: var(--cc-gui-content-font-size, var(--idea-editor-font-size, 12.5px));
     line-height: var(--idea-editor-line-spacing, 1.5);
     max-width: 100%; /* 防止超出容器 */
     box-sizing: border-box; /* 包含 padding 在宽度内 */
@@ -662,7 +662,7 @@
     right: 6px;
     width: 28px;
     height: 28px;
-    background: var(--bg-secondary);
+    background: var(--cc-gui-surface-bg, var(--bg-secondary));
     border: 1px solid var(--border-primary);
     border-radius: 4px;
     cursor: pointer;
@@ -676,7 +676,7 @@
     opacity: 0.7;
 
     &:hover {
-        background: var(--bg-hover);
+        background: var(--cc-gui-surface-bg-strong, var(--bg-hover));
         color: var(--text-primary);
         opacity: 1;
         border-color: var(--border-hover);
@@ -693,7 +693,7 @@
     position: absolute;
     top: -30px;
     right: 0;
-    background: var(--bg-elevated);
+    background: var(--cc-gui-surface-bg-strong, var(--bg-elevated));
     color: var(--text-primary);
     border: 1px solid var(--border-secondary);
     box-shadow: var(--shadow-sm);
@@ -747,7 +747,7 @@
 
 .markdown-content code {
     font-family: var(--cc-gui-code-font-family, var(--idea-editor-font-family, 'JetBrains Mono', 'Consolas', monospace));
-    background-color: var(--color-code-inline-bg);
+    background-color: var(--cc-gui-inline-code-bg, var(--color-code-inline-bg));
     padding: 2px 4px;
     border-radius: 3px;
     font-size: inherit;
@@ -888,7 +888,7 @@
 }
 
 .markdown-content th {
-    background-color: var(--background-tertiary);
+    background-color: var(--cc-gui-surface-bg-soft, var(--background-tertiary));
     font-weight: 600;
 }
 
@@ -1015,7 +1015,7 @@
 .tool-block {
     margin: 4px 0;
     border-radius: 4px;
-    background: var(--color-tool-bg);
+    background: var(--cc-gui-surface-bg-soft, var(--color-tool-bg));
     border: 1px solid var(--border-primary);
     overflow: hidden;
     max-width: 100%; /* 防止超出容器 */
@@ -1066,7 +1066,7 @@
 
 .tool-params {
     padding: 6px 12px;
-    background: var(--color-tool-bg-secondary);
+    background: var(--cc-gui-surface-bg-soft, var(--color-tool-bg-secondary));
     border-top: 1px solid var(--border-primary);
     font-family: var(--idea-editor-font-family, 'JetBrains Mono', 'Consolas', monospace);
     font-size: 12px;
@@ -1154,7 +1154,7 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--bg-secondary);
+    background: var(--cc-gui-surface-bg, var(--bg-secondary));
     border: 2px solid var(--border-secondary);
     cursor: pointer;
     pointer-events: auto;
@@ -1173,8 +1173,8 @@
     }
 
     &:hover {
-        background: var(--accent-primary);
-        border-color: var(--accent-primary);
+        background: var(--color-message-user-bg, var(--accent-primary));
+        border-color: var(--color-message-user-bg, var(--accent-primary));
         transform: translate(-50%, -50%) scale(1.3);
     }
 
@@ -1184,8 +1184,8 @@
     }
 
     &.is-active {
-        background: var(--accent-primary);
-        border-color: var(--accent-primary);
+        background: var(--color-message-user-bg, var(--accent-primary));
+        border-color: var(--color-message-user-bg, var(--accent-primary));
         box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.25);
     }
 }
@@ -1196,7 +1196,7 @@
     left: calc(100% + 8px);
     top: 50%;
     transform: translateY(-50%);
-    background: var(--bg-elevated);
+    background: var(--cc-gui-surface-bg-strong, var(--bg-elevated));
     color: var(--text-primary);
     border: 1px solid var(--border-secondary);
     box-shadow: var(--shadow-sm);
@@ -1229,7 +1229,7 @@
         top: 50%;
         transform: translateY(-50%);
         border: 4px solid transparent;
-        border-right-color: var(--bg-elevated);
+        border-right-color: var(--cc-gui-surface-bg-strong, var(--bg-elevated));
     }
 }
 
@@ -1241,7 +1241,7 @@
 /* File link hover tooltip */
 .file-link-tooltip {
     position: fixed;
-    background: var(--bg-elevated);
+    background: var(--cc-gui-surface-bg-strong, var(--bg-elevated));
     color: var(--text-primary);
     border: 1px solid var(--border-secondary);
     box-shadow: var(--shadow-sm);

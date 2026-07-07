@@ -19,7 +19,7 @@
   height: 52px;
   border-radius: 6px;
   overflow: hidden;
-  background: var(--attachment-bg);
+  background: var(--cc-gui-surface-bg, var(--attachment-bg));
   border: 1px solid var(--attachment-border);
   cursor: pointer;
 }
@@ -82,4 +82,3 @@
 .attachment-remove:hover {
   background: var(--error-color);
 }
-

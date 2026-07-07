@@ -2,6 +2,10 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import styles from './style.module.less';
 import { useTranslation } from 'react-i18next';
 import type { DiffThemeMode } from '../../../utils/diffTheme';
+import {
+  DEFAULT_APPEARANCE_OPACITY_SETTINGS,
+  type AppearanceOpacitySettings,
+} from '../../../utils/appearance';
 import type { UiFontConfig, CodeFontConfig } from '../hooks/useSettingsBasicActions';
 
 // Preset colors (module-level constants to avoid recreating on each render)
@@ -116,6 +120,8 @@ export interface AppearanceTabProps {
   onChatBgColorChange?: (color: string) => void;
   userMsgColor?: string;
   onUserMsgColorChange?: (color: string) => void;
+  appearanceOpacity?: AppearanceOpacitySettings;
+  onAppearanceOpacityChange?: (settings: AppearanceOpacitySettings) => void;
   diffTheme?: DiffThemeMode;
   onDiffThemeChange?: (theme: DiffThemeMode) => void;
 }
@@ -138,6 +144,8 @@ const AppearanceTab = ({
   onChatBgColorChange = () => {},
   userMsgColor = '',
   onUserMsgColorChange = () => {},
+  appearanceOpacity = DEFAULT_APPEARANCE_OPACITY_SETTINGS,
+  onAppearanceOpacityChange = () => {},
   diffTheme = 'follow',
   onDiffThemeChange = () => {},
 }: AppearanceTabProps) => {
@@ -260,6 +268,17 @@ const AppearanceTab = ({
     onUserMsgColorChange('');
   };
 
+  const handleOpacityChange = (key: keyof AppearanceOpacitySettings, value: number) => {
+    onAppearanceOpacityChange({
+      ...appearanceOpacity,
+      [key]: value,
+    });
+  };
+
+  const handleResetOpacity = () => {
+    onAppearanceOpacityChange(DEFAULT_APPEARANCE_OPACITY_SETTINGS);
+  };
+
   const isUserMsgPresetActive = (presetColor: string) => {
     if (presetColor === defaultUserMsgColor && !userMsgColor) return true;
     return userMsgColor.toLowerCase() === presetColor.toLowerCase();
@@ -339,6 +358,44 @@ const AppearanceTab = ({
     { value: 'ru', label: 'settings.basic.language.russian' },
     { value: 'ko', label: 'settings.basic.language.korean' },
     { value: 'pt-BR', label: 'settings.basic.language.portuguese' },
+  ];
+
+  const opacityControls: Array<{
+    key: keyof AppearanceOpacitySettings;
+    icon: string;
+    label: string;
+    hint: string;
+  }> = [
+    {
+      key: 'surface',
+      icon: 'codicon-layout',
+      label: t('settings.basic.opacity.surface', { defaultValue: '普通面板' }),
+      hint: t('settings.basic.opacity.surfaceHint', { defaultValue: '工具块、状态栏、普通卡片等基础半透明区域。' }),
+    },
+    {
+      key: 'menu',
+      icon: 'codicon-menu',
+      label: t('settings.basic.opacity.menu', { defaultValue: '弹窗和菜单' }),
+      hint: t('settings.basic.opacity.menuHint', { defaultValue: '下拉菜单、状态面板弹窗，以及菜单悬停底色。' }),
+    },
+    {
+      key: 'header',
+      icon: 'codicon-window',
+      label: t('settings.basic.opacity.header', { defaultValue: '顶部栏和页签' }),
+      hint: t('settings.basic.opacity.headerHint', { defaultValue: 'CC GUI 顶部栏、工具栏等固定区域。Rider 自己的编辑器文件页签不属于插件界面。' }),
+    },
+    {
+      key: 'input',
+      icon: 'codicon-edit',
+      label: t('settings.basic.opacity.input', { defaultValue: '输入框' }),
+      hint: t('settings.basic.opacity.inputHint', { defaultValue: '底部输入区域和输入框相关浮层。' }),
+    },
+    {
+      key: 'userMessage',
+      icon: 'codicon-comment',
+      label: t('settings.basic.opacity.userMessage', { defaultValue: '用户消息和锚点' }),
+      hint: t('settings.basic.opacity.userMessageHint', { defaultValue: '用户蓝色消息气泡，以及左侧当前消息小蓝点。' }),
+    },
   ];
 
   const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -630,6 +687,49 @@ const AppearanceTab = ({
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Transparency / opacity controls */}
+      <div className={styles.opacitySection}>
+        <div className={styles.fieldHeader}>
+          <span className="codicon codicon-symbol-color" />
+          <span className={styles.fieldLabel}>
+            {t('settings.basic.opacity.label', { defaultValue: '透明度' })}
+          </span>
+        </div>
+
+        <div className={styles.opacityGrid}>
+          {opacityControls.map((control) => (
+            <div key={control.key} className={styles.opacityControl}>
+              <div className={styles.opacityControlHeader}>
+                <span className={`codicon ${control.icon}`} />
+                <span className={styles.opacityLabel}>{control.label}</span>
+                <span className={styles.opacityValue}>{appearanceOpacity[control.key]}%</span>
+              </div>
+              <input
+                type="range"
+                min={10}
+                max={100}
+                step={1}
+                value={appearanceOpacity[control.key]}
+                className={styles.opacitySlider}
+                onChange={(event) => handleOpacityChange(control.key, Number(event.target.value))}
+                aria-label={control.label}
+              />
+              <small className={styles.opacityHint}>{control.hint}</small>
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className={styles.resetBtn}
+          onClick={handleResetOpacity}
+          title={t('settings.basic.opacity.reset', { defaultValue: '恢复默认透明度' })}
+        >
+          <span className="codicon codicon-discard" />
+          {t('settings.basic.opacity.reset', { defaultValue: '恢复默认透明度' })}
+        </button>
       </div>
 
       {/* Chat background color */}

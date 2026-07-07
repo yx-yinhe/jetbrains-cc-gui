@@ -947,6 +947,18 @@ interface Window {
   __INITIAL_IDE_THEME__?: 'light' | 'dark';
 
   /**
+   * Initial editor background color injected by Java before React boots.
+   * Used as a fallback when transparent JCEF composition is unavailable.
+   */
+  __INITIAL_IDE_BACKGROUND_COLOR__?: string;
+
+  /**
+   * Whether the webview should keep the chat surface transparent so Rider's
+   * own background painter can show through.
+   */
+  __INITIAL_IDE_TRANSPARENT_BACKGROUND__?: boolean;
+
+  /**
    * Per-tab provider id ("claude" / "codex") injected by Java into the HTML
    * before React boots. Used by useModelStatePersistence to override the
    * global localStorage snapshot ("model-selection-state") when the backend
@@ -983,4 +995,36 @@ interface Window {
    * JSON string or object with shape { type, title, message }.
    */
   backend_notification?: (...args: unknown[]) => void;
+}
+
+declare module 'highlight.js/lib/core' {
+  interface HighlightResult {
+    value: string;
+  }
+
+  interface HighlightJsCore {
+    registerLanguage(name: string, language: (hljs?: unknown) => unknown): void;
+    registerAliases(aliases: string | string[], options: { languageName: string }): void;
+    getLanguage(name: string): unknown;
+    highlight(code: string, options: { language: string }): HighlightResult;
+    highlightAuto(code: string): HighlightResult;
+  }
+
+  const hljs: HighlightJsCore;
+  export default hljs;
+}
+
+declare module 'highlight.js/lib/languages/*' {
+  const language: (hljs?: unknown) => unknown;
+  export default language;
+}
+
+declare module 'mermaid' {
+  interface MermaidApi {
+    initialize(config: Record<string, unknown>): void;
+    render(id: string, code: string): Promise<{ svg: string }>;
+  }
+
+  const mermaid: MermaidApi;
+  export default mermaid;
 }

@@ -23,6 +23,7 @@ ext.getLocalProperty = { String key, String defaultValue = null ->
 
 // Get custom JDK path from local properties (support both property names)
 def localJavaHome = getLocalProperty('java.home') ?: getLocalProperty('org.gradle.java.home')
+def toolchainJavaVersion = (getLocalProperty('javaToolchainVersion', '17') as Integer)
 
 checkstyle {
     toolVersion = '10.12.5'
@@ -50,7 +51,7 @@ java {
 
     // Use Java Toolchain for consistent JDK across all tasks
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(toolchainJavaVersion)
     }
 }
 
@@ -70,7 +71,7 @@ if (localJavaHome) {
             // Skip runIde task to use JBR for JCEF support
             if (it.name != 'runIde') {
                 javaLauncher = javaToolchains.launcherFor {
-                    languageVersion = JavaLanguageVersion.of(17)
+                    languageVersion = JavaLanguageVersion.of(toolchainJavaVersion)
                 }
             }
         }
@@ -113,6 +114,8 @@ dependencies {
             // Enable Terminal Plugin support
             bundledPlugin('org.jetbrains.plugins.terminal')
         }
+        // Optional Markdown preview integration for transparent IDE backgrounds
+        bundledPlugin('org.intellij.plugins.markdown')
 
         instrumentationTools()
 

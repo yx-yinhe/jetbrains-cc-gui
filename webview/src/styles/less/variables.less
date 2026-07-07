@@ -2,8 +2,19 @@
 /* 暗色主题（默认） */
 :root, [data-theme="dark"] {
     /* 背景色 */
-    --bg-primary: #1e1e1e;
-    --bg-chat: var(--bg-primary);
+    --cc-gui-ide-background-color: #1e1e1e;
+    --bg-primary: var(--cc-gui-ide-background-color, #1e1e1e);
+    --bg-chat: transparent;
+    --cc-gui-surface-bg: rgba(30, 30, 30, 0.46);
+    --cc-gui-surface-bg-soft: rgba(30, 30, 30, 0.28);
+    --cc-gui-surface-bg-strong: rgba(30, 30, 30, 0.72);
+    --cc-gui-header-bg: rgba(37, 37, 38, 0.44);
+    --cc-gui-code-block-bg: rgba(18, 18, 18, 0.58);
+    --cc-gui-inline-code-bg: rgba(255, 255, 255, 0.08);
+    --cc-gui-input-bg: rgba(18, 18, 18, 0.36);
+    --cc-gui-menu-bg: rgba(30, 30, 30, 0.78);
+    --cc-gui-menu-hover-bg: rgba(65, 67, 73, 0.86);
+    --cc-gui-menu-selected-bg: rgba(9, 71, 113, 0.88);
     --bg-secondary: #252526;
     --bg-tertiary: #2b2d31;
     --bg-elevated: #2d2d2d;
@@ -52,11 +63,11 @@
 
     /* 滚动条 */
     --scrollbar-track: #1e1e1e;
-    --scrollbar-thumb: #424242;
-    --scrollbar-thumb-hover: #4f4f4f;
+    --scrollbar-thumb: rgba(128, 128, 128, 0.34);
+    --scrollbar-thumb-hover: rgba(160, 160, 160, 0.56);
 
     /* 代码块颜色 */
-    --color-code-block-bg: #1e1e1e;
+    --color-code-block-bg: var(--cc-gui-code-block-bg);
     --color-code-block-border: #333;
     --color-code-inline-bg: rgba(255, 255, 255, 0.1);
 
@@ -99,7 +110,7 @@
     --color-warning-button-hover: #e65100;
 
     /* 消息颜色 */
-    --color-message-user-bg: #005fb8;
+    --color-message-user-bg: rgba(0, 95, 184, 0.52);
     --color-message-user-text: #ffffff;
     --color-message-user-code-bg: rgba(0, 0, 0, 0.2);
     --color-message-user-code-border: rgba(255, 255, 255, 0.1);
@@ -226,8 +237,19 @@
 /* 亮色主题 */
 [data-theme="light"] {
     /* 背景色 */
-    --bg-primary: #ffffff;
-    --bg-chat: var(--bg-primary);
+    --cc-gui-ide-background-color: #ffffff;
+    --bg-primary: var(--cc-gui-ide-background-color, #ffffff);
+    --bg-chat: transparent;
+    --cc-gui-surface-bg: rgba(255, 255, 255, 0.58);
+    --cc-gui-surface-bg-soft: rgba(255, 255, 255, 0.38);
+    --cc-gui-surface-bg-strong: rgba(255, 255, 255, 0.82);
+    --cc-gui-header-bg: rgba(243, 243, 243, 0.52);
+    --cc-gui-code-block-bg: rgba(255, 255, 255, 0.62);
+    --cc-gui-inline-code-bg: rgba(0, 0, 0, 0.07);
+    --cc-gui-input-bg: rgba(255, 255, 255, 0.46);
+    --cc-gui-menu-bg: rgba(255, 255, 255, 0.84);
+    --cc-gui-menu-hover-bg: rgba(224, 224, 224, 0.92);
+    --cc-gui-menu-selected-bg: rgba(227, 242, 253, 0.92);
     --bg-secondary: #f3f3f3;
     --bg-tertiary: #e8e8e8;
     --bg-elevated: #f5f5f5;
@@ -276,11 +298,11 @@
 
     /* 滚动条 */
     --scrollbar-track: #f0f0f0;
-    --scrollbar-thumb: #c0c0c0;
-    --scrollbar-thumb-hover: #a0a0a0;
+    --scrollbar-thumb: rgba(96, 96, 96, 0.28);
+    --scrollbar-thumb-hover: rgba(96, 96, 96, 0.48);
 
     /* 代码块颜色 */
-    --color-code-block-bg: #f5f5f5;
+    --color-code-block-bg: var(--cc-gui-code-block-bg);
     --color-code-block-border: #d0d0d0;
     --color-code-inline-bg: rgba(0, 0, 0, 0.06);
 
@@ -323,7 +345,7 @@
     --color-warning-button-hover: #ef6c00;
 
     /* 消息颜色 */
-    --color-message-user-bg: #0078d4;
+    --color-message-user-bg: rgba(0, 120, 212, 0.72);
     --color-message-user-text: #ffffff;
     --color-message-user-code-bg: rgba(0, 0, 0, 0.15);
     --color-message-user-code-border: rgba(255, 255, 255, 0.2);
