@@ -53,6 +53,7 @@ A powerful IntelliJ IDEA plugin that provides a visual interface for **Claude Co
 - File navigation and code jumping
 - Dark/Light theme switching
 - Font scaling and IDE font synchronization
+- IDE background image transparency support, with adjustable opacity for panels, menus, inputs, message bubbles, and Markdown preview
 - Internationalization support (auto-switch between Chinese/English)
 
 ### Session Management
