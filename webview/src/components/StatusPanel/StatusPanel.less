@@ -65,12 +65,16 @@
 
   &:hover {
     color: var(--text-primary);
-    background: var(--cc-gui-menu-hover-bg, var(--cc-gui-surface-bg-strong, var(--bg-hover)));
+    background: var(--cc-gui-button-hover-bg, var(--bg-hover));
   }
 
   &.active {
     color: var(--text-primary);
-    background: var(--cc-gui-menu-hover-bg, var(--cc-gui-surface-bg-strong, var(--bg-tertiary)));
+    background: var(--cc-gui-status-tab-active-bg, var(--bg-tertiary));
+  }
+
+  &.active:hover {
+    background: var(--cc-gui-status-tab-active-bg, var(--bg-tertiary));
   }
 
   .codicon {
@@ -126,7 +130,7 @@
   left: 0;
   right: 0;
   margin-bottom: 4px;
-  background: var(--cc-gui-status-panel-bg, var(--cc-gui-menu-bg, var(--cc-gui-surface-bg-strong, var(--bg-secondary))));
+  background: var(--cc-gui-secondary-popover-bg, var(--cc-gui-menu-bg, var(--cc-gui-surface-bg-strong, var(--bg-secondary))));
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
@@ -430,7 +434,7 @@
   padding: 12px;
   border: 1px solid var(--border-primary);
   border-radius: 8px;
-  background: var(--cc-gui-status-panel-bg, var(--cc-gui-menu-bg, var(--cc-gui-surface-bg-strong, var(--bg-secondary))));
+  background: var(--cc-gui-secondary-popover-bg, var(--cc-gui-menu-bg, var(--cc-gui-surface-bg-strong, var(--bg-secondary))));
   overflow-anchor: none;
 }
 
@@ -500,7 +504,7 @@
   padding: 10px;
   border: 1px solid var(--border-primary);
   border-radius: 7px;
-  background: var(--cc-gui-status-panel-bg-soft, var(--cc-gui-code-block-bg, var(--bg-primary)));
+  background: var(--cc-gui-secondary-popover-bg-soft, var(--cc-gui-code-block-bg, var(--bg-primary)));
   color: var(--text-primary);
   line-height: 1.5;
   white-space: pre-wrap;
@@ -520,7 +524,7 @@
   padding: 7px 9px;
   border: 1px solid var(--border-primary);
   border-radius: 6px;
-  background: var(--cc-gui-status-panel-bg-soft, var(--cc-gui-surface-bg-soft, var(--bg-primary)));
+  background: var(--cc-gui-secondary-popover-bg-soft, var(--cc-gui-surface-bg-soft, var(--bg-primary)));
   color: var(--text-primary);
   font-family: var(--idea-editor-font-family, monospace);
   font-size: 11px;
@@ -551,7 +555,7 @@
   max-width: 260px;
   padding: 6px 8px;
   border-radius: 6px;
-  background: var(--cc-gui-status-panel-bg-soft, var(--cc-gui-surface-bg-soft, var(--bg-primary)));
+  background: var(--cc-gui-secondary-popover-bg-soft, var(--cc-gui-surface-bg-soft, var(--bg-primary)));
   border: 1px solid var(--border-primary);
   color: var(--text-primary);
 
@@ -570,7 +574,7 @@
   gap: 8px;
   padding: 12px;
   border-radius: 7px;
-  background: var(--cc-gui-status-panel-bg-soft, var(--cc-gui-surface-bg-soft, var(--bg-primary)));
+  background: var(--cc-gui-secondary-popover-bg-soft, var(--cc-gui-surface-bg-soft, var(--bg-primary)));
   color: var(--text-secondary);
 
   .codicon {
@@ -594,7 +598,7 @@
     padding: 10px;
     border-radius: 7px;
     border: 1px solid var(--border-primary);
-    background: var(--cc-gui-status-panel-bg-soft, var(--cc-gui-code-block-bg, var(--bg-primary)));
+    background: var(--cc-gui-secondary-popover-bg-soft, var(--cc-gui-code-block-bg, var(--bg-primary)));
     color: var(--text-primary);
     white-space: pre-wrap;
   }
@@ -902,7 +906,7 @@
   gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--border-primary);
-  background: var(--cc-gui-status-panel-bg-strong, var(--cc-gui-menu-bg, var(--cc-gui-surface-bg-strong, var(--bg-tertiary))));
+  background: var(--cc-gui-secondary-popover-bg-strong, var(--cc-gui-menu-bg, var(--cc-gui-surface-bg-strong, var(--bg-tertiary))));
 
   .file-changes-action-btn {
     display: flex;

@@ -1109,6 +1109,10 @@
     position: relative;
 }
 
+:root.cc-gui-status-popover-open .messages-shell {
+    clip-path: inset(0 0 var(--cc-gui-status-popover-clip-height, 0px) 0);
+}
+
 .messages-shell .messages-container {
     flex: 1;
     min-width: 0;

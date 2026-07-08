@@ -379,10 +379,10 @@ const AppearanceTab = ({
       hint: t('settings.basic.opacity.menuHint', { defaultValue: '下拉菜单、普通弹窗，以及菜单悬停底色。' }),
     },
     {
-      key: 'statusPanel',
+      key: 'secondaryPopover',
       icon: 'codicon-tasklist',
-      label: t('settings.basic.opacity.statusPanel', { defaultValue: '状态面板弹出层' }),
-      hint: t('settings.basic.opacity.statusPanelHint', { defaultValue: '点击任务、子代理、编辑按钮后打开的状态面板详情区域。' }),
+      label: t('settings.basic.opacity.secondaryPopover', { defaultValue: '二级弹窗' }),
+      hint: t('settings.basic.opacity.secondaryPopoverHint', { defaultValue: '输入区配置弹窗、状态面板详情，以及从这些面板继续打开的浮层。' }),
     },
     {
       key: 'header',

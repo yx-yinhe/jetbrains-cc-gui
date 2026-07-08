@@ -30,7 +30,7 @@
   --dropdown-hover: var(--cc-gui-menu-hover-bg, var(--cc-gui-surface-bg-strong, #2a2d2e));
   --dropdown-selected: var(--cc-gui-menu-selected-bg, #094771);
   --button-bg: transparent;
-  --button-hover: rgba(255, 255, 255, 0.16);
+  --button-hover: var(--cc-gui-button-hover-bg, rgba(255, 255, 255, 0.16));
   --button-primary: #007fd4;
   --button-disabled: #555;
   --text-primary: #cccccc;
@@ -58,7 +58,7 @@
   --dropdown-hover: var(--cc-gui-menu-hover-bg, var(--cc-gui-surface-bg-strong, #f5f5f5));
   --dropdown-selected: var(--cc-gui-menu-selected-bg, #e3f2fd);
   --button-bg: transparent;
-  --button-hover: rgba(0, 0, 0, 0.08);
+  --button-hover: var(--cc-gui-button-hover-bg, rgba(0, 0, 0, 0.08));
   --button-primary: #0078d4;
   --button-disabled: #cccccc;
   --text-primary: #333333;

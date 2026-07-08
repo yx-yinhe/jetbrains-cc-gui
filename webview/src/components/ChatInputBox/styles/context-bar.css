@@ -279,7 +279,7 @@ button.context-file-placeholder:focus-visible {
   z-index: 1000;
   min-width: 260px;
   max-width: 320px;
-  background: var(--dropdown-bg);
+  background: var(--cc-gui-secondary-popover-bg, var(--dropdown-bg));
   border: 1px solid var(--dropdown-border);
   border-radius: 8px;
   padding: 12px;
@@ -302,7 +302,7 @@ button.context-file-placeholder:focus-visible {
   top: 100%;
   left: 17px;
   border: 5px solid transparent;
-  border-top-color: var(--dropdown-bg);
+  border-top-color: var(--cc-gui-secondary-popover-bg, var(--dropdown-bg));
 }
 
 .popover-title {
@@ -340,7 +340,7 @@ button.context-file-placeholder:focus-visible {
 }
 
 .popover-btn-cancel:hover {
-  background: var(--button-hover);
+  background: var(--cc-gui-secondary-popover-hover-bg, var(--button-hover));
   color: var(--text-primary);
 }
 

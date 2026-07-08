@@ -15,6 +15,7 @@ const StatusPanel = ({ todos, fileChanges, subagents, subagentHistories, current
   const { t } = useTranslation();
   const [openPopover, setOpenPopover] = useState<TabType | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const popoverContentRef = useRef<HTMLDivElement>(null);
 
   // Undo related state
   const [undoingFile, setUndoingFile] = useState<string | null>(null);
@@ -72,6 +73,46 @@ const StatusPanel = ({ todos, fileChanges, subagents, subagentHistories, current
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
+  }, [openPopover]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const openClass = 'cc-gui-status-popover-open';
+    const clipVar = '--cc-gui-status-popover-clip-height';
+    const element = popoverContentRef.current;
+
+    if (!openPopover || !element) {
+      root.classList.remove(openClass);
+      root.style.removeProperty(clipVar);
+      return;
+    }
+
+    let animationFrame = 0;
+    const updateClipHeight = () => {
+      animationFrame = 0;
+      const height = Math.ceil(element.getBoundingClientRect().height + 4);
+      root.style.setProperty(clipVar, `${height}px`);
+      root.classList.add(openClass);
+    };
+    const scheduleUpdate = () => {
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(updateClipHeight);
+    };
+
+    scheduleUpdate();
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(scheduleUpdate)
+      : null;
+    resizeObserver?.observe(element);
+    window.addEventListener('resize', scheduleUpdate);
+
+    return () => {
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', scheduleUpdate);
+      root.classList.remove(openClass);
+      root.style.removeProperty(clipVar);
+    };
   }, [openPopover]);
 
   const handleTabClick = useCallback((tab: TabType) => {
@@ -280,7 +321,7 @@ const StatusPanel = ({ todos, fileChanges, subagents, subagentHistories, current
 
       {/* Popover Content */}
       {openPopover && (
-        <div className="status-panel-popover">
+        <div className="status-panel-popover" ref={popoverContentRef}>
           {renderPopoverContent()}
         </div>
       )}

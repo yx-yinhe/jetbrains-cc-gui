@@ -248,7 +248,7 @@ export const ProviderSelect = ({ value, onChange, compact = false }: ProviderSel
 
     return (
       <div
-        className="selector-dropdown"
+        className="selector-dropdown secondary-popover"
         style={{ ...SUBMENU_STYLE, bottom: `${submenuBottom}px` }}
         onClick={(e) => e.stopPropagation()}
         onMouseEnter={(e) => {
@@ -306,7 +306,7 @@ export const ProviderSelect = ({ value, onChange, compact = false }: ProviderSel
         {isOpen && (
           <div
             ref={dropdownRef}
-            className="selector-dropdown"
+            className="selector-dropdown secondary-popover"
             style={{ ...DROPDOWN_STYLE, ...positionedStyle }}
           >
             {AVAILABLE_PROVIDERS.map((provider) => (

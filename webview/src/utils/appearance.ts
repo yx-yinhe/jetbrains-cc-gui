@@ -8,10 +8,14 @@ export interface AppearanceOpacitySettings {
   surface: number;
   header: number;
   menu: number;
-  statusPanel: number;
+  secondaryPopover: number;
   input: number;
   userMessage: number;
 }
+
+type StoredAppearanceOpacitySettings = Partial<AppearanceOpacitySettings> & {
+  statusPanel?: number;
+};
 
 export const APPEARANCE_OPACITY_STORAGE_KEY = 'appearanceOpacitySettings';
 
@@ -19,10 +23,12 @@ export const DEFAULT_APPEARANCE_OPACITY_SETTINGS: AppearanceOpacitySettings = {
   surface: 46,
   header: 44,
   menu: 78,
-  statusPanel: 78,
+  secondaryPopover: 78,
   input: 36,
   userMessage: 52,
 };
+
+const STATUS_TAB_ACTIVE_OPACITY = 60;
 
 const FONT_SIZE_SCALE_BY_LEVEL: Record<number, number> = {
   1: 0.8,
@@ -66,13 +72,16 @@ function rgba(rgb: string | [number, number, number], opacityPercent: number): s
 }
 
 export function normalizeAppearanceOpacitySettings(
-  settings: Partial<AppearanceOpacitySettings> | null | undefined,
+  settings: StoredAppearanceOpacitySettings | null | undefined,
 ): AppearanceOpacitySettings {
   return {
     surface: normalizeOpacityPercent(settings?.surface, DEFAULT_APPEARANCE_OPACITY_SETTINGS.surface),
     header: normalizeOpacityPercent(settings?.header, DEFAULT_APPEARANCE_OPACITY_SETTINGS.header),
     menu: normalizeOpacityPercent(settings?.menu, DEFAULT_APPEARANCE_OPACITY_SETTINGS.menu),
-    statusPanel: normalizeOpacityPercent(settings?.statusPanel, DEFAULT_APPEARANCE_OPACITY_SETTINGS.statusPanel),
+    secondaryPopover: normalizeOpacityPercent(
+      settings?.secondaryPopover ?? settings?.statusPanel,
+      DEFAULT_APPEARANCE_OPACITY_SETTINGS.secondaryPopover,
+    ),
     input: normalizeOpacityPercent(settings?.input, DEFAULT_APPEARANCE_OPACITY_SETTINGS.input),
     userMessage: normalizeOpacityPercent(settings?.userMessage, DEFAULT_APPEARANCE_OPACITY_SETTINGS.userMessage),
   };
@@ -82,7 +91,7 @@ export function getStoredAppearanceOpacitySettings(): AppearanceOpacitySettings 
   try {
     const saved = localStorage.getItem(APPEARANCE_OPACITY_STORAGE_KEY);
     if (!saved) return DEFAULT_APPEARANCE_OPACITY_SETTINGS;
-    return normalizeAppearanceOpacitySettings(JSON.parse(saved) as Partial<AppearanceOpacitySettings>);
+    return normalizeAppearanceOpacitySettings(JSON.parse(saved) as StoredAppearanceOpacitySettings);
   } catch {
     return DEFAULT_APPEARANCE_OPACITY_SETTINGS;
   }
@@ -148,9 +157,14 @@ export function applyAppearanceOpacitySettings(
   root.style.setProperty('--cc-gui-menu-bg', rgba(menuRgb, normalized.menu));
   root.style.setProperty('--cc-gui-menu-hover-bg', rgba(menuHoverRgb, clampDerivedOpacity(normalized.menu + 8)));
   root.style.setProperty('--cc-gui-menu-selected-bg', rgba(menuSelectedRgb, clampDerivedOpacity(normalized.menu + 10)));
-  root.style.setProperty('--cc-gui-status-panel-bg', rgba(menuRgb, normalized.statusPanel));
-  root.style.setProperty('--cc-gui-status-panel-bg-soft', rgba(menuRgb, clampDerivedOpacity(normalized.statusPanel - 18)));
-  root.style.setProperty('--cc-gui-status-panel-bg-strong', rgba(menuRgb, clampDerivedOpacity(normalized.statusPanel + 10)));
+  root.style.setProperty('--cc-gui-secondary-popover-bg', rgba(menuRgb, normalized.secondaryPopover));
+  root.style.setProperty('--cc-gui-secondary-popover-bg-soft', rgba(menuRgb, clampDerivedOpacity(normalized.secondaryPopover - 18)));
+  root.style.setProperty('--cc-gui-secondary-popover-bg-strong', rgba(menuRgb, clampDerivedOpacity(normalized.secondaryPopover + 10)));
+  root.style.setProperty('--cc-gui-secondary-popover-hover-bg', rgba(menuHoverRgb, clampDerivedOpacity(normalized.secondaryPopover + 18)));
+  root.style.setProperty('--cc-gui-status-panel-bg', rgba(menuRgb, normalized.secondaryPopover));
+  root.style.setProperty('--cc-gui-status-panel-bg-soft', rgba(menuRgb, clampDerivedOpacity(normalized.secondaryPopover - 18)));
+  root.style.setProperty('--cc-gui-status-panel-bg-strong', rgba(menuRgb, clampDerivedOpacity(normalized.secondaryPopover + 10)));
+  root.style.setProperty('--cc-gui-status-tab-active-bg', rgba(menuHoverRgb, STATUS_TAB_ACTIVE_OPACITY));
   root.style.setProperty('--color-message-user-bg', rgba(userMessageRgb, normalized.userMessage));
 }
 

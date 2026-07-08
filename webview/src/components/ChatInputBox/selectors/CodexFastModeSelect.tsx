@@ -100,7 +100,7 @@ export const CodexFastModeSelect = ({ value, onChange }: CodexFastModeSelectProp
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="selector-dropdown"
+          className="selector-dropdown secondary-popover"
           style={DROPDOWN_STYLE}
         >
           {CODEX_FAST_MODE_OPTIONS.map((mode) => (

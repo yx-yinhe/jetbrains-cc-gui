@@ -6,7 +6,7 @@
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    background: var(--color-scroll-control-bg);
+    background: var(--cc-gui-secondary-popover-bg, var(--color-scroll-control-bg));
     border: 1px solid var(--color-scroll-control-border);
     color: var(--color-scroll-control-text);
     cursor: pointer;
@@ -20,12 +20,12 @@
 }
 
 .scroll-control-button:hover {
-    background: var(--color-scroll-control-hover-bg);
+    background: var(--cc-gui-secondary-popover-hover-bg, var(--color-scroll-control-hover-bg));
     border-color: var(--color-scroll-control-hover-border);
 }
 
 .scroll-control-button:active {
-    background: var(--color-scroll-control-active-bg);
+    background: var(--cc-gui-secondary-popover-bg-strong, var(--color-scroll-control-active-bg));
 }
 
 .scroll-control-button svg {

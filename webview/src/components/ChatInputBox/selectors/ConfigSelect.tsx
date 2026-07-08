@@ -310,7 +310,7 @@ export const ConfigSelect = ({
     return (
     <div
       ref={agentSubmenuRef}
-      className="selector-dropdown"
+      className="selector-dropdown secondary-popover"
       style={{
         ...SUBMENU_BASE_STYLE,
         ...agentSubmenuPositionedStyle,
@@ -388,7 +388,7 @@ export const ConfigSelect = ({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="selector-dropdown"
+          className="selector-dropdown secondary-popover"
           style={{ ...DROPDOWN_STYLE, ...mainPositionedStyle }}
         >
           {/* Agent Item */}

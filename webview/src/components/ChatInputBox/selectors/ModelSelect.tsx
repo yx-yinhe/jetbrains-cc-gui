@@ -290,7 +290,7 @@ export const ModelSelect = ({ value, onChange, models = AVAILABLE_MODELS, curren
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="selector-dropdown"
+          className="selector-dropdown secondary-popover"
           style={{ ...DROPDOWN_STYLE, ...positionedStyle, maxHeight, overflowY: 'auto' }}
         >
           {showSearch && (
