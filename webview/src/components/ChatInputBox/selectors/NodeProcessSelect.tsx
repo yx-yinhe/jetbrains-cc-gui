@@ -606,7 +606,7 @@ export const NodeProcessSelect = ({ embedded = false, onClose, onToast }: NodePr
   const renderDropdown = () => (
     <div
       ref={dropdownRef}
-      className={`selector-dropdown node-process-dropdown${embedded ? ' secondary-popover' : ''}`}
+      className="selector-dropdown node-process-dropdown"
       style={dropdownStyle}
       onMouseEnter={(e) => e.stopPropagation()}
     >

@@ -1,0 +1,107 @@
+/* Fork-specific transparent IDE background integration. */
+
+body,
+html,
+#app {
+    background: transparent;
+}
+
+#app {
+    height: 100vh;
+    width: 100vw;
+}
+
+.header {
+    padding: 5px 8px 5px 16px;
+    min-height: 40px;
+    background: var(--cc-gui-header-bg, var(--bg-secondary));
+}
+
+.new-chat-button {
+    padding: 4px 10px;
+    background: var(--cc-gui-surface-bg-soft, var(--bg-tertiary));
+}
+
+.new-chat-button:hover,
+.back-button:hover,
+.icon-button:hover {
+    background: var(--cc-gui-surface-bg-strong, var(--bg-hover));
+}
+
+.back-button {
+    padding: 3px 7px;
+}
+
+.icon-button {
+    width: 28px;
+    height: 28px;
+}
+
+.icon-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+.icon-button .codicon {
+    font-size: 16px;
+}
+
+.session-title {
+    font-size: 13px;
+}
+
+.session-title-input {
+    background-color: var(--cc-gui-surface-bg, var(--bg-tertiary));
+}
+
+.input-container {
+    background: var(--cc-gui-input-bg, var(--bg-tertiary));
+}
+
+.task-container {
+    background: var(--cc-gui-surface-bg-soft, var(--bg-primary));
+}
+
+.task-header,
+.task-details,
+.bash-tool-content {
+    background: transparent;
+}
+
+.task-header:hover,
+.file-list-item:hover,
+.file-list-item.clickable-file:hover,
+.edit-group-action-btn:hover,
+.bash-timeline-content:hover,
+.bash-timeline-content.expanded,
+[data-theme="light"] .bash-timeline-content:hover,
+[data-theme="light"] .bash-timeline-content.expanded {
+    background-color: var(--cc-gui-surface-bg, var(--bg-secondary));
+}
+
+.file-list-item.clickable-file:active,
+.edit-group-action-btn:active {
+    background-color: var(--cc-gui-surface-bg-strong, var(--bg-active, var(--bg-secondary)));
+}
+
+.task-result,
+.bash-command-block,
+[data-theme="light"] .bash-command-block {
+    background: var(--cc-gui-code-block-bg, var(--bg-secondary));
+}
+
+.bash-tool-header {
+    background: var(--cc-gui-surface-bg-soft, var(--bg-primary));
+}
+
+.scroll-control-button {
+    background: var(--cc-gui-secondary-popover-bg, var(--color-scroll-control-bg));
+}
+
+.scroll-control-button:hover {
+    background: var(--cc-gui-secondary-popover-hover-bg, var(--color-scroll-control-hover-bg));
+}
+
+.scroll-control-button:active {
+    background: var(--cc-gui-secondary-popover-bg-strong, var(--color-scroll-control-active-bg));
+}

@@ -3,7 +3,7 @@
    ============================================================ */
 .completion-dropdown {
   position: fixed;
-  background: var(--cc-gui-secondary-popover-bg, var(--dropdown-bg));
+  background: var(--dropdown-bg);
   border: 1px solid var(--dropdown-border);
   border-radius: 6px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -21,20 +21,16 @@
   gap: 8px;
   padding: 8px 12px;
   cursor: pointer;
-  transition: background 0.1s, box-shadow 0.1s, color 0.1s;
+  transition: background 0.1s;
 }
 
 .dropdown-item:hover,
 .dropdown-item.active {
-  background: var(--cc-gui-secondary-popover-hover-bg, var(--dropdown-hover));
-  box-shadow:
-    inset 3px 0 0 var(--accent-primary, #007fd4),
-    inset 0 0 0 1px var(--border-hover);
-  color: var(--text-primary);
+  background: var(--dropdown-hover);
 }
 
 .dropdown-item.selected {
-  background: var(--cc-gui-menu-selected-bg, var(--dropdown-selected));
+  background: var(--dropdown-selected);
 }
 
 /* Disabled state (directory) */
@@ -47,7 +43,6 @@
 .dropdown-item.disabled:hover,
 .dropdown-item.disabled.active {
   background: transparent;
-  box-shadow: none;
 }
 
 .dropdown-item-icon {
@@ -120,3 +115,4 @@
   color: var(--text-secondary);
   font-size: 12px;
 }
+

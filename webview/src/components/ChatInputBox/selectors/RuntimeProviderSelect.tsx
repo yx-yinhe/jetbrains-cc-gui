@@ -236,7 +236,7 @@ export const RuntimeProviderSelect = ({ currentProvider, embedded = false, trigg
     <div
       ref={dropdownRef}
       role="listbox"
-      className={`selector-dropdown runtime-provider-dropdown${embedded ? ' secondary-popover' : ''}`}
+      className="selector-dropdown runtime-provider-dropdown"
       style={dropdownStyle}
       onMouseEnter={(event) => event.stopPropagation()}
     >

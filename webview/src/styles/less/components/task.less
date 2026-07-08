@@ -1,6 +1,6 @@
 /* Task Execution Block Styles */
 .task-container {
-    background: var(--cc-gui-surface-bg-soft, var(--bg-primary));
+    background: var(--bg-primary);
     border: 1px solid var(--border-primary);
     border-radius: 8px;
     margin: 12px 0;
@@ -13,14 +13,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
-    background: transparent;
+    background: var(--bg-primary);
     cursor: pointer;
     user-select: none;
     transition: background-color 0.2s;
 }
 
 .task-header:hover {
-    background: var(--cc-gui-surface-bg, var(--bg-secondary));
+    background: var(--bg-secondary);
 }
 
 .task-header-expanded {
@@ -102,7 +102,7 @@
 .task-details {
     padding: 0;
     border-top: 1px solid var(--border-primary);
-    background: transparent;
+    background: var(--bg-primary);
     overflow-anchor: none;
 }
 
@@ -134,7 +134,7 @@
     color: var(--text-primary);
     line-height: 1.5;
     white-space: pre-wrap;
-    background: var(--cc-gui-code-block-bg, var(--bg-secondary));
+    background: var(--bg-secondary);
     padding: 8px;
     border-radius: 6px;
     font-family: var(--idea-editor-font-family, 'JetBrains Mono', 'Consolas', monospace);
@@ -147,7 +147,7 @@
 }
 
 .file-list-item:hover {
-    background-color: var(--cc-gui-surface-bg, var(--bg-secondary));
+    background-color: var(--bg-secondary);
 }
 
 .file-list-item.clickable-file {
@@ -155,11 +155,11 @@
 }
 
 .file-list-item.clickable-file:hover {
-    background-color: var(--cc-gui-surface-bg, var(--bg-tertiary, var(--bg-secondary)));
+    background-color: var(--bg-tertiary, var(--bg-secondary));
 }
 
 .file-list-item.clickable-file:active {
-    background-color: var(--cc-gui-surface-bg-strong, var(--bg-active, var(--bg-secondary)));
+    background-color: var(--bg-active, var(--bg-secondary));
 }
 
 /* File list container scrollbar */
@@ -202,12 +202,12 @@
 }
 
 .edit-group-action-btn:hover {
-    background: var(--cc-gui-surface-bg, var(--bg-tertiary, var(--bg-secondary)));
+    background: var(--bg-tertiary, var(--bg-secondary));
     color: var(--text-primary);
 }
 
 .edit-group-action-btn:active {
-    background: var(--cc-gui-surface-bg-strong, var(--bg-active, var(--bg-secondary)));
+    background: var(--bg-active, var(--bg-secondary));
 }
 
 /* Agent Group Block */

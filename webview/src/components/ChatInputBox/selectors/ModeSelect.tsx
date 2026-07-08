@@ -136,7 +136,7 @@ export const ModeSelect = ({ value, onChange, provider }: ModeSelectProps) => {
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="selector-dropdown secondary-popover"
+          className="selector-dropdown"
           style={{ ...DROPDOWN_STYLE, ...positionedStyle }}
         >
           {modeOptions.map((mode) => (

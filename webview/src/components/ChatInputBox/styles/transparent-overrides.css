@@ -1,0 +1,98 @@
+/* Fork-specific transparent IDE background integration. */
+
+:root,
+[data-theme="dark"] {
+  --dropdown-bg: var(--cc-gui-menu-bg, var(--cc-gui-surface-bg-strong, #252526));
+}
+
+[data-theme="light"] {
+  --dropdown-bg: var(--cc-gui-menu-bg, var(--cc-gui-surface-bg-strong, #ffffff));
+}
+
+:root .chat-input-box,
+[data-theme="dark"] .chat-input-box {
+  --input-bg: var(--cc-gui-input-bg, var(--bg-chat, #1e1e1e));
+  --dropdown-bg: var(--cc-gui-menu-bg, var(--cc-gui-surface-bg-strong, #252526));
+  --dropdown-hover: var(--cc-gui-menu-hover-bg, var(--cc-gui-surface-bg-strong, #2a2d2e));
+  --dropdown-selected: var(--cc-gui-menu-selected-bg, #094771);
+  --button-hover: var(--cc-gui-button-hover-bg, rgba(255, 255, 255, 0.16));
+  --attachment-bg: var(--cc-gui-surface-bg, #2d2d2d);
+  --context-bar-bg: var(--cc-gui-surface-bg-soft, #2f2f2f);
+}
+
+[data-theme="light"] .chat-input-box {
+  --input-bg: var(--cc-gui-input-bg, var(--bg-chat, #ffffff));
+  --dropdown-bg: var(--cc-gui-menu-bg, var(--cc-gui-surface-bg-strong, #ffffff));
+  --dropdown-hover: var(--cc-gui-menu-hover-bg, var(--cc-gui-surface-bg-strong, #f5f5f5));
+  --dropdown-selected: var(--cc-gui-menu-selected-bg, #e3f2fd);
+  --button-hover: var(--cc-gui-button-hover-bg, rgba(0, 0, 0, 0.08));
+  --attachment-bg: var(--cc-gui-surface-bg, #f5f5f5);
+  --context-bar-bg: var(--cc-gui-surface-bg-soft, #f0f0f0);
+}
+
+.attachment-item,
+.code-snippet-tag,
+.context-item,
+.message-queue-item {
+  background: var(--cc-gui-surface-bg, var(--dropdown-bg));
+}
+
+.message-queue,
+[data-theme="light"] .message-queue,
+.input-toolbar {
+  background: var(--cc-gui-surface-bg-soft, var(--context-bar-bg));
+}
+
+[data-theme="light"] .message-queue-item {
+  background: var(--cc-gui-surface-bg, #ffffff);
+}
+
+.completion-dropdown,
+.selector-dropdown,
+.context-popover {
+  background: var(--cc-gui-secondary-popover-bg, var(--dropdown-bg));
+}
+
+.context-popover::after {
+  border-top-color: var(--cc-gui-secondary-popover-bg, var(--dropdown-bg));
+}
+
+.dropdown-item,
+.selector-option {
+  transition: background 0.1s, box-shadow 0.1s, color 0.1s;
+}
+
+.dropdown-item:hover,
+.dropdown-item.active,
+.selector-option:hover,
+.node-process-icon-button:hover:not(:disabled) {
+  background: var(--cc-gui-secondary-popover-hover-bg, var(--dropdown-hover));
+  box-shadow:
+    inset 3px 0 0 var(--accent-primary, #007fd4),
+    inset 0 0 0 1px var(--border-hover);
+  color: var(--text-primary);
+}
+
+.dropdown-item.disabled:hover,
+.dropdown-item.disabled.active,
+.selector-option-status:hover {
+  box-shadow: none;
+}
+
+.dropdown-item.selected,
+.selector-option.selected {
+  background: var(--cc-gui-menu-selected-bg, var(--dropdown-selected));
+}
+
+.selector-search-input {
+  background: var(--cc-gui-input-bg, var(--input-bg));
+}
+
+.popover-btn-cancel:hover {
+  background: var(--cc-gui-secondary-popover-hover-bg, var(--button-hover));
+}
+
+.text-input {
+  font-size: var(--cc-gui-content-font-size, 14px);
+  line-height: var(--cc-gui-content-line-height, 1.5);
+}

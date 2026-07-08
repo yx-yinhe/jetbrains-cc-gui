@@ -162,7 +162,7 @@ export const ReasoningSelect = ({ value, onChange, disabled, selectedModel, curr
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="selector-dropdown secondary-popover"
+          className="selector-dropdown"
           style={{ ...DROPDOWN_STYLE, ...positionedStyle }}
         >
           {availableLevels.map((level) => (

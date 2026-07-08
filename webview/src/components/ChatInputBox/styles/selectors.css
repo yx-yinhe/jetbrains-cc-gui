@@ -189,22 +189,6 @@
   font-family: inherit;
 }
 
-.selector-dropdown.secondary-popover {
-  background: var(--cc-gui-secondary-popover-bg, var(--dropdown-bg));
-}
-
-.selector-dropdown.secondary-popover .selector-option:hover {
-  background: var(--cc-gui-secondary-popover-hover-bg, var(--dropdown-hover));
-  box-shadow:
-    inset 3px 0 0 var(--accent-primary, #007fd4),
-    inset 0 0 0 1px var(--border-hover);
-  color: var(--text-primary);
-}
-
-.selector-dropdown.secondary-popover .selector-option.selected {
-  background: var(--cc-gui-menu-selected-bg, var(--dropdown-selected));
-}
-
 .selector-option {
   display: flex;
   align-items: center;
@@ -214,12 +198,11 @@
   color: var(--text-primary);
   font-size: 12px;
   font-family: inherit;
-  transition: background 0.1s, box-shadow 0.1s, color 0.1s;
+  transition: background 0.1s;
 }
 
 .selector-option:hover {
   background: var(--dropdown-hover);
-  color: var(--text-primary);
 }
 
 .selector-option.selected {
@@ -255,7 +238,7 @@
   padding: 5px 8px;
   border: 1px solid var(--dropdown-border);
   border-radius: 4px;
-  background: var(--cc-gui-input-bg, var(--input-bg));
+  background: var(--input-bg);
   color: var(--text-primary);
   font-size: 12px;
   font-family: inherit;
@@ -324,7 +307,7 @@
 }
 
 .node-process-icon-button:hover:not(:disabled) {
-  background: var(--cc-gui-secondary-popover-hover-bg, var(--dropdown-hover));
+  background: var(--button-hover);
 }
 
 .node-process-icon-button:disabled {
