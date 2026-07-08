@@ -8,6 +8,7 @@ export interface AppearanceOpacitySettings {
   surface: number;
   header: number;
   menu: number;
+  statusPanel: number;
   input: number;
   userMessage: number;
 }
@@ -18,6 +19,7 @@ export const DEFAULT_APPEARANCE_OPACITY_SETTINGS: AppearanceOpacitySettings = {
   surface: 46,
   header: 44,
   menu: 78,
+  statusPanel: 78,
   input: 36,
   userMessage: 52,
 };
@@ -70,6 +72,7 @@ export function normalizeAppearanceOpacitySettings(
     surface: normalizeOpacityPercent(settings?.surface, DEFAULT_APPEARANCE_OPACITY_SETTINGS.surface),
     header: normalizeOpacityPercent(settings?.header, DEFAULT_APPEARANCE_OPACITY_SETTINGS.header),
     menu: normalizeOpacityPercent(settings?.menu, DEFAULT_APPEARANCE_OPACITY_SETTINGS.menu),
+    statusPanel: normalizeOpacityPercent(settings?.statusPanel, DEFAULT_APPEARANCE_OPACITY_SETTINGS.statusPanel),
     input: normalizeOpacityPercent(settings?.input, DEFAULT_APPEARANCE_OPACITY_SETTINGS.input),
     userMessage: normalizeOpacityPercent(settings?.userMessage, DEFAULT_APPEARANCE_OPACITY_SETTINGS.userMessage),
   };
@@ -145,6 +148,9 @@ export function applyAppearanceOpacitySettings(
   root.style.setProperty('--cc-gui-menu-bg', rgba(menuRgb, normalized.menu));
   root.style.setProperty('--cc-gui-menu-hover-bg', rgba(menuHoverRgb, clampDerivedOpacity(normalized.menu + 8)));
   root.style.setProperty('--cc-gui-menu-selected-bg', rgba(menuSelectedRgb, clampDerivedOpacity(normalized.menu + 10)));
+  root.style.setProperty('--cc-gui-status-panel-bg', rgba(menuRgb, normalized.statusPanel));
+  root.style.setProperty('--cc-gui-status-panel-bg-soft', rgba(menuRgb, clampDerivedOpacity(normalized.statusPanel - 18)));
+  root.style.setProperty('--cc-gui-status-panel-bg-strong', rgba(menuRgb, clampDerivedOpacity(normalized.statusPanel + 10)));
   root.style.setProperty('--color-message-user-bg', rgba(userMessageRgb, normalized.userMessage));
 }
 

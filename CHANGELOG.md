@@ -1,3 +1,21 @@
+##### **2026年7月8日（v0.4.6-fix-yx.2）**
+
+English:
+
+Improvements
+- Add an independent opacity setting for the status panel popover opened from task, sub-agent, and edit actions.
+- Keep IDE background transparency controls compatible with older saved appearance settings.
+- Mark this fork build with the `v0.4.6-fix-yx.2` plugin version and `MossX / yx-yinhe` vendor metadata.
+
+中文：
+
+改进
+- 新增“状态面板弹出层”独立不透明度设置，可单独调节点任务、子代理、编辑按钮后打开的状态面板详情区域。
+- 保持 IDE 背景透明控制与旧版外观设置兼容，已有配置会自动补齐新默认值。
+- 将本 fork 构建的插件版本标记为 `v0.4.6-fix-yx.2`，vendor 元数据标记为 `MossX / yx-yinhe`。
+
+---
+
 ##### **2026年7月6日（v0.4.6-fix1）**
 
 English:
