@@ -373,6 +373,14 @@ const AppearanceTab = ({
       hint: t('settings.basic.opacity.surfaceHint', { defaultValue: '工具块、状态栏、普通卡片等基础半透明区域。' }),
     },
     {
+      key: 'codeBlock',
+      icon: 'codicon-code',
+      label: t('settings.basic.opacity.codeBlock', { defaultValue: '代码块' }),
+      hint: t('settings.basic.opacity.codeBlockHint', {
+        defaultValue: '助手回复中的 Markdown 代码块和 Mermaid；不影响行内代码、工具块和普通卡片。',
+      }),
+    },
+    {
       key: 'menu',
       icon: 'codicon-menu',
       label: t('settings.basic.opacity.menu', { defaultValue: '弹窗和菜单' }),

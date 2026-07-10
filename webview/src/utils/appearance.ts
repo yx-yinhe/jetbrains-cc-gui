@@ -6,6 +6,7 @@ export interface IdeThemePayload {
 
 export interface AppearanceOpacitySettings {
   surface: number;
+  codeBlock: number;
   header: number;
   menu: number;
   secondaryPopover: number;
@@ -21,6 +22,7 @@ export const APPEARANCE_OPACITY_STORAGE_KEY = 'appearanceOpacitySettings';
 
 export const DEFAULT_APPEARANCE_OPACITY_SETTINGS: AppearanceOpacitySettings = {
   surface: 46,
+  codeBlock: 58,
   header: 44,
   menu: 78,
   secondaryPopover: 78,
@@ -74,8 +76,17 @@ function rgba(rgb: string | [number, number, number], opacityPercent: number): s
 export function normalizeAppearanceOpacitySettings(
   settings: StoredAppearanceOpacitySettings | null | undefined,
 ): AppearanceOpacitySettings {
+  const surface = normalizeOpacityPercent(
+    settings?.surface,
+    DEFAULT_APPEARANCE_OPACITY_SETTINGS.surface,
+  );
+
   return {
-    surface: normalizeOpacityPercent(settings?.surface, DEFAULT_APPEARANCE_OPACITY_SETTINGS.surface),
+    surface,
+    codeBlock: normalizeOpacityPercent(
+      settings?.codeBlock,
+      clampDerivedOpacity(surface + 12),
+    ),
     header: normalizeOpacityPercent(settings?.header, DEFAULT_APPEARANCE_OPACITY_SETTINGS.header),
     menu: normalizeOpacityPercent(settings?.menu, DEFAULT_APPEARANCE_OPACITY_SETTINGS.menu),
     secondaryPopover: normalizeOpacityPercent(
@@ -152,6 +163,7 @@ export function applyAppearanceOpacitySettings(
   root.style.setProperty('--cc-gui-surface-bg-soft', rgba(surfaceRgb, clampDerivedOpacity(normalized.surface - 18)));
   root.style.setProperty('--cc-gui-surface-bg-strong', rgba(surfaceRgb, clampDerivedOpacity(normalized.surface + 26)));
   root.style.setProperty('--cc-gui-code-block-bg', rgba(codeRgb, clampDerivedOpacity(normalized.surface + 12)));
+  root.style.setProperty('--cc-gui-markdown-code-block-bg', rgba(codeRgb, normalized.codeBlock));
   root.style.setProperty('--cc-gui-header-bg', rgba(headerRgb, normalized.header));
   root.style.setProperty('--cc-gui-input-bg', rgba(inputRgb, normalized.input));
   root.style.setProperty('--cc-gui-menu-bg', rgba(menuRgb, normalized.menu));

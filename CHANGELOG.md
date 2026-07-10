@@ -1,3 +1,21 @@
+##### **2026年7月10日（v0.4.7-yx.2）**
+
+English:
+
+🐛 Fixes and improvements
+- Make the Font Size setting apply to both chat messages and the message input while keeping the overall plugin UI at 100% scale.
+- Add an independent Code Block opacity setting for assistant Markdown fenced blocks and Mermaid diagrams. Existing settings migrate from the previous `Normal Panel + 12%` appearance, while tool blocks and ordinary cards remain controlled by Normal Panel.
+- Mark this fork build as `v0.4.7-yx.2` with `MossX / yx-yinhe` vendor metadata.
+
+中文：
+
+🐛 修复与改进
+- 字体大小设置现在同时作用于聊天消息和消息输入框，插件整体 UI 始终保持 100% 缩放。
+- 新增独立“代码块”透明度设置，仅控制助手 Markdown 围栏代码块和 Mermaid 图表。旧配置会按原先的“普通面板 + 12%”效果迁移，工具块和普通卡片仍由“普通面板”控制。
+- 将本 fork 构建标记为 `v0.4.7-yx.2`，vendor 元数据保持为 `MossX / yx-yinhe`。
+
+---
+
 ##### **2026年7月10日（v0.4.7-yx.1）**
 
 English:

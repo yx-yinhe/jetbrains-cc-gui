@@ -92,7 +92,7 @@
   background: var(--cc-gui-secondary-popover-hover-bg, var(--button-hover));
 }
 
-.text-input {
+.input-editable {
   font-size: var(--cc-gui-content-font-size, 14px);
   line-height: var(--cc-gui-content-line-height, 1.5);
 }

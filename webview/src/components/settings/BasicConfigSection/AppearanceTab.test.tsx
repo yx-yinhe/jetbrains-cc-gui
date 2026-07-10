@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { DEFAULT_APPEARANCE_OPACITY_SETTINGS } from '../../../utils/appearance';
 import AppearanceTab from './AppearanceTab';
 
 const changeLanguageMock = vi.fn();
@@ -14,7 +15,7 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-describe('AppearanceTab ui font selector', () => {
+describe('AppearanceTab', () => {
   afterEach(() => {
     localStorage.clear();
   });
@@ -210,5 +211,36 @@ describe('AppearanceTab ui font selector', () => {
 
     expect(onUiFontSelectionChange).toHaveBeenCalledTimes(1);
     expect(onUiFontSelectionChange).toHaveBeenCalledWith('customFile');
+  });
+
+  it('updates Markdown code block opacity independently from the other controls', () => {
+    const onAppearanceOpacityChange = vi.fn();
+    const appearanceOpacity = {
+      ...DEFAULT_APPEARANCE_OPACITY_SETTINGS,
+      codeBlock: 37,
+    };
+
+    render(
+      <AppearanceTab
+        {...({
+          theme: 'dark',
+          onThemeChange: vi.fn(),
+          fontSizeLevel: 3,
+          onFontSizeLevelChange: vi.fn(),
+          appearanceOpacity,
+          onAppearanceOpacityChange,
+        } as any)}
+      />
+    );
+
+    const slider = screen.getByRole('slider', { name: 'settings.basic.opacity.codeBlock' });
+    expect((slider as HTMLInputElement).value).toBe('37');
+
+    fireEvent.change(slider, { target: { value: '64' } });
+
+    expect(onAppearanceOpacityChange).toHaveBeenCalledWith({
+      ...appearanceOpacity,
+      codeBlock: 64,
+    });
   });
 });
