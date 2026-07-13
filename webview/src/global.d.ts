@@ -1017,28 +1017,6 @@ interface Window {
   backend_notification?: (...args: unknown[]) => void;
 }
 
-declare module 'highlight.js/lib/core' {
-  interface HighlightResult {
-    value: string;
-  }
-
-  interface HighlightJsCore {
-    registerLanguage(name: string, language: (hljs?: unknown) => unknown): void;
-    registerAliases(aliases: string | string[], options: { languageName: string }): void;
-    getLanguage(name: string): unknown;
-    highlight(code: string, options: { language: string }): HighlightResult;
-    highlightAuto(code: string): HighlightResult;
-  }
-
-  const hljs: HighlightJsCore;
-  export default hljs;
-}
-
-declare module 'highlight.js/lib/languages/*' {
-  const language: (hljs?: unknown) => unknown;
-  export default language;
-}
-
 declare module 'mermaid' {
   interface MermaidApi {
     initialize(config: Record<string, unknown>): void;
