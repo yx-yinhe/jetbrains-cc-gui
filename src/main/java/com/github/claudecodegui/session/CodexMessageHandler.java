@@ -207,6 +207,13 @@ public class CodexMessageHandler implements MessageCallback {
                 assistantContent.setLength(0);
                 assistantContent.append(parsed.content != null ? parsed.content : "");
             } else {
+                // Snapshot-first turns do not necessarily emit content_delta before the
+                // completed assistant item. Keep the first snapshot as this turn's
+                // current message so a repeated/complementary completion updates it
+                // instead of appending a second assistant bubble.
+                currentAssistantMessage = parsed;
+                assistantContent.setLength(0);
+                assistantContent.append(parsed.content != null ? parsed.content : "");
                 state.addMessage(parsed);
             }
             callbackHandler.notifyMessageUpdate(state.getMessages());

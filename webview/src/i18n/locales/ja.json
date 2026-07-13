@@ -1434,6 +1434,18 @@
       }
     },
     "codex": {
+      "gpt56sol": {
+        "label": "GPT-5.6 Sol",
+        "description": "最新のフロンティア・エージェント型コーディングモデル"
+      },
+      "gpt56terra": {
+        "label": "GPT-5.6 Terra",
+        "description": "日常業務向けのバランスの取れたエージェント型コーディングモデル"
+      },
+      "gpt56luna": {
+        "label": "GPT-5.6 Luna",
+        "description": "高速で手頃なエージェント型コーディングモデル"
+      },
       "gpt53codex": {
         "label": "GPT-5.3-Codex",
         "description": "最新の最先端エージェントコーディングモデル（機能強化版）"
@@ -1589,6 +1601,14 @@
     "xhigh": {
       "label": "最大",
       "description": "最大の推論深度"
+    },
+    "max": {
+      "label": "Max",
+      "description": "最難関の問題に対応する最大の推論深度"
+    },
+    "ultra": {
+      "label": "Ultra",
+      "description": "タスクの自動委任を伴う最大限の推論"
     }
   },
   "errorBoundary": {

@@ -157,14 +157,17 @@ export const ButtonArea = ({
     if (currentProvider === 'codex') {
       // Merge built-in models and custom models
       const customModels = getCustomCodexModels();
-      if (customModels.length === 0) {
-        return CODEX_MODELS;
-      }
-      // Custom models first, built-in models after
-      // Filter out built-in models that duplicate custom models
       const customIds = new Set(customModels.map(m => m.id));
       const filteredBuiltIn = CODEX_MODELS.filter(m => !customIds.has(m.id));
-      return [...customModels, ...filteredBuiltIn];
+      const mergedModels = [...customModels, ...filteredBuiltIn];
+
+      // Keep restored or backend-provided legacy models visible until the user
+      // explicitly switches away from them. This prevents a Sol label from being
+      // shown while requests still use a retired model ID.
+      if (selectedModel && !mergedModels.some(model => model.id === selectedModel)) {
+        return [{ id: selectedModel, label: selectedModel }, ...mergedModels];
+      }
+      return mergedModels;
     }
     if (typeof window === 'undefined' || !window.localStorage) {
       return CLAUDE_MODELS;
@@ -190,7 +193,7 @@ export const ButtonArea = ({
     const customIds = new Set(customModels.map(m => m.id));
     const filteredBuiltIn = builtInModels.filter(m => !customIds.has(m.id));
     return [...customModels, ...filteredBuiltIn];
-  }, [currentProvider, applyModelMapping, customModelsVersion]);
+  }, [currentProvider, selectedModel, applyModelMapping, customModelsVersion]);
 
   /**
    * Handle submit button click

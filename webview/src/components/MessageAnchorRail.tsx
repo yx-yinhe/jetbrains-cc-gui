@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ClaudeMessage } from '../types';
-import { getMessageKey } from '../utils/messageUtils';
+import { getUniqueMessageKeys } from '../utils/messageUtils';
 
 interface AnchorItem {
   id: string;
@@ -18,6 +18,7 @@ interface MessageAnchorRailProps {
 
 const MAX_PREVIEW_LENGTH = 300;
 const TOOLTIP_DELAY_MS = 500;
+const NAVIGATION_LOCK_TIMEOUT_MS = 1800;
 
 function getAnchorStyle(position: number): React.CSSProperties {
   return { top: `${position * 100}%` };
@@ -49,11 +50,20 @@ export const MessageAnchorRail = memo(function MessageAnchorRail({
   const [activeAnchorId, setActiveAnchorId] = useState<string | null>(null);
   const [tooltipAnchorId, setTooltipAnchorId] = useState<string | null>(null);
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigationTargetRef = useRef<string | null>(null);
+  const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearTooltipTimer = useCallback(() => {
     if (tooltipTimerRef.current !== null) {
       clearTimeout(tooltipTimerRef.current);
       tooltipTimerRef.current = null;
+    }
+  }, []);
+
+  const clearNavigationTimer = useCallback(() => {
+    if (navigationTimerRef.current !== null) {
+      clearTimeout(navigationTimerRef.current);
+      navigationTimerRef.current = null;
     }
   }, []);
 
@@ -71,15 +81,17 @@ export const MessageAnchorRail = memo(function MessageAnchorRail({
 
   // Cleanup timer on unmount
   useEffect(() => clearTooltipTimer, [clearTooltipTimer]);
+  useEffect(() => clearNavigationTimer, [clearNavigationTimer]);
 
   // Compute anchor items from visible user messages only (skip collapsed ones)
   const anchors = useMemo<AnchorItem[]>(() => {
     const userMessages: AnchorItem[] = [];
+    const messageKeys = getUniqueMessageKeys(messages);
     const startIndex = collapsedCount;
     for (let i = startIndex; i < messages.length; i++) {
       if (messages[i].type === 'user') {
         userMessages.push({
-          id: getMessageKey(messages[i], i),
+          id: messageKeys[i],
           position: 0,
           preview: getMessagePreview(messages[i]),
         });
@@ -94,6 +106,21 @@ export const MessageAnchorRail = memo(function MessageAnchorRail({
     }));
   }, [messages, collapsedCount]);
 
+  // Clear transient navigation state if its message disappears after a session
+  // switch or collapse-window update. Keep this separate from observer cleanup:
+  // streaming updates can rebuild the observer while a smooth scroll is active.
+  useEffect(() => {
+    const anchorIds = new Set(anchors.map((anchor) => anchor.id));
+    const navigationTarget = navigationTargetRef.current;
+    if (navigationTarget !== null && !anchorIds.has(navigationTarget)) {
+      navigationTargetRef.current = null;
+      clearNavigationTimer();
+    }
+    setActiveAnchorId((previous) => (
+      previous !== null && !anchorIds.has(previous) ? null : previous
+    ));
+  }, [anchors, clearNavigationTimer]);
+
   // Scroll to a specific anchor message
   const scrollToAnchor = useCallback((messageId: string) => {
     const node = messageNodeMap.current?.get(messageId);
@@ -105,12 +132,25 @@ export const MessageAnchorRail = memo(function MessageAnchorRail({
     const targetTop =
       container.scrollTop + (nodeRect.top - containerRect.top) - container.clientHeight * 0.28;
 
+    clearNavigationTimer();
+    navigationTargetRef.current = messageId;
+    setActiveAnchorId(messageId);
+
+    const navigationTimer = setTimeout(() => {
+      if (navigationTargetRef.current === messageId) {
+        navigationTargetRef.current = null;
+      }
+      if (navigationTimerRef.current === navigationTimer) {
+        navigationTimerRef.current = null;
+      }
+    }, NAVIGATION_LOCK_TIMEOUT_MS);
+    navigationTimerRef.current = navigationTimer;
+
     container.scrollTo({
       top: Math.max(0, targetTop),
       behavior: 'smooth',
     });
-    setActiveAnchorId(messageId);
-  }, [containerRef, messageNodeMap]);
+  }, [clearNavigationTimer, containerRef, messageNodeMap]);
 
   // Use IntersectionObserver to track which anchor message is visible.
   // This replaces the old scroll-handler + getBoundingClientRect() loop
@@ -135,14 +175,28 @@ export const MessageAnchorRail = memo(function MessageAnchorRail({
           }
         }
 
-        // Pick the first visible anchor (topmost in DOM order)
-        // by iterating anchors in order and checking membership
-        for (const anchor of anchors) {
-          if (visibleSet.has(anchor.id)) {
-            setActiveAnchorId((prev) => (prev === anchor.id ? prev : anchor.id));
-            return;
+        const navigationTarget = navigationTargetRef.current;
+        if (navigationTarget !== null) {
+          // During a smooth scroll, the source and destination can both occupy
+          // the observer's top band. Keep the clicked destination active until
+          // it arrives instead of letting DOM order select the source again.
+          if (visibleSet.has(navigationTarget)) {
+            navigationTargetRef.current = null;
+            clearNavigationTimer();
+            setActiveAnchorId((previous) => (
+              previous === navigationTarget ? previous : navigationTarget
+            ));
           }
+          return;
         }
+
+        setActiveAnchorId((previous) => {
+          // Consecutive messages can be visible together. Retain the current
+          // anchor until it leaves the band, then fall back to DOM order.
+          if (previous !== null && visibleSet.has(previous)) return previous;
+          const firstVisible = anchors.find((anchor) => visibleSet.has(anchor.id));
+          return firstVisible?.id ?? previous;
+        });
       },
       {
         root: container,
@@ -163,7 +217,7 @@ export const MessageAnchorRail = memo(function MessageAnchorRail({
     return () => {
       observer.disconnect();
     };
-  }, [containerRef, messageNodeMap, anchors]);
+  }, [containerRef, messageNodeMap, anchors, clearNavigationTimer]);
 
   if (anchors.length === 0) return null;
 

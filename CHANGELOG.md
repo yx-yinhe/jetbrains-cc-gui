@@ -1,3 +1,29 @@
+##### **2026年7月13日（v0.4.7-yx.3）**
+
+English:
+
+🐛 Fixes and improvements
+- Add complete GPT-5.6 Sol/Terra/Luna support, including built-in localized model selection, context-window metadata, saved-setting migration, Fast mode, and model-specific reasoning levels: Sol/Terra through `ultra`, Luna through `max`.
+- Add GPT-5.6 standard usage-cost estimation per 1M input/output/cached-input tokens: Sol `$5/$30/$0.50`, Terra `$2.50/$15/$0.25`, and Luna `$1/$6/$0.10`, including aliases and snapshots.
+- Fix duplicate assistant answers in chat by reconciling Codex update/completion events and repeated stream-end snapshots instead of appending the same completion twice.
+- Fix message-anchor dots sharing a colliding history ID, which made every dot jump to the newest message and activate together.
+- Fix message-anchor activation for consecutive user messages: clicking a lower dot now keeps that dot highlighted while smooth scrolling, even when both messages are inside the observer band; repeated clicks and navigation back to the upper message remain reliable.
+- Apply configured translucent backgrounds to permission prompts, command previews, and generic tool parameter/code blocks.
+- Mark this fork build as `v0.4.7-yx.3` with `MossX / yx-yinhe` vendor metadata.
+
+中文：
+
+🐛 修复与改进
+- 完整支持 GPT-5.6 Sol/Terra/Luna，包括内置本地化模型选择、上下文窗口元数据、已保存设置迁移、Fast 模式和按模型区分的推理档位：Sol/Terra 最高支持 `ultra`，Luna 最高支持 `max`。
+- 新增 GPT-5.6 标准用量费用估算，每百万输入/输出/缓存输入 token 的单价分别为：Sol `$5/$30/$0.50`、Terra `$2.50/$15/$0.25`、Luna `$1/$6/$0.10`，并覆盖别名与快照模型。
+- 修复聊天中助手回答重复显示的问题：统一协调 Codex 的更新/完成事件与流结束快照，不再把同一次完整回答追加两遍。
+- 修复消息锚点圆点共享冲突历史 ID 的问题，不再全部跳到最近消息、同时亮起或重复点击失效。
+- 修复连续用户消息的锚点激活错位：点击下方圆点后，即使上下两条消息同时位于观察区域，平滑滚动期间也会保持下方圆点高亮；重复点击及返回上方消息的导航同样可靠。
+- 让权限审批弹窗、命令预览以及通用工具参数/代码区正确应用已配置的半透明背景。
+- 将本 fork 构建标记为 `v0.4.7-yx.3`，vendor 元数据保持为 `MossX / yx-yinhe`。
+
+---
+
 ##### **2026年7月10日（v0.4.7-yx.2）**
 
 English:

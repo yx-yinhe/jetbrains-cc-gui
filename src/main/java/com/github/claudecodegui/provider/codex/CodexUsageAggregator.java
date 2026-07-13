@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -43,13 +44,21 @@ class CodexUsageAggregator {
             Map.entry("gpt-5.1-codex", DEFAULT_PRICING),
             Map.entry("gpt-5.2-codex", new Pricing(1.75, 14.0, 0.175)),
             Map.entry("gpt-5.4", new Pricing(2.5, 15.0, 0.25)),
-            Map.entry("gpt-5.4-mini", new Pricing(0.75, 4.5, 0.075))
+            Map.entry("gpt-5.4-mini", new Pricing(0.75, 4.5, 0.075)),
+            // Standard rates in USD per 1M input, output, and cached-input tokens.
+            Map.entry("gpt-5.6-sol", new Pricing(5.0, 30.0, 0.5)),
+            Map.entry("gpt-5.6-terra", new Pricing(2.5, 15.0, 0.25)),
+            Map.entry("gpt-5.6-luna", new Pricing(1.0, 6.0, 0.1))
     );
     private static final Map<String, String> MODEL_ALIASES = Map.of(
             "gpt-5-codex", "gpt-5",
-            "gpt-5.3-codex", "gpt-5.2-codex"
+            "gpt-5.3-codex", "gpt-5.2-codex",
+            "gpt-5.6", "gpt-5.6-sol"
     );
     private static final List<String> MODEL_PREFIXES = List.of(
+            "gpt-5.6-terra",
+            "gpt-5.6-sol",
+            "gpt-5.6-luna",
             "gpt-5.4-mini",
             "gpt-5.4",
             "gpt-5.3-codex",
@@ -283,8 +292,13 @@ class CodexUsageAggregator {
         // User-configured pricing takes precedence over the hardcoded table. It is used for
         // plugin-level custom models and for pricing-only Claude mapped model entries. Cache
         // is mtime-invalidated automatically.
-        Pricing builtin = MODEL_PRICING.getOrDefault(normalizeModel(model), null);
+        String normalizedModel = normalizeModel(model);
+        Pricing builtin = MODEL_PRICING.getOrDefault(normalizedModel, null);
         Pricing customPricing = resolveCustomPricing(model, builtin);
+        if (customPricing == null && model != null && !model.isBlank()
+                && !normalizedModel.equals(model.trim())) {
+            customPricing = resolveCustomPricing(normalizedModel, builtin);
+        }
         if (customPricing != null) {
             return customPricing;
         }
@@ -315,9 +329,13 @@ class CodexUsageAggregator {
             return DEFAULT_MODEL;
         }
 
-        String normalized = MODEL_ALIASES.getOrDefault(SNAPSHOT_SUFFIX.matcher(model).replaceFirst(""), model);
+        String withoutSnapshot = SNAPSHOT_SUFFIX.matcher(model.trim().toLowerCase(Locale.ROOT)).replaceFirst("");
+        String normalized = MODEL_ALIASES.getOrDefault(withoutSnapshot, withoutSnapshot);
+        if (MODEL_PRICING.containsKey(normalized)) {
+            return normalized;
+        }
         return MODEL_PREFIXES.stream()
-                .filter(normalized::startsWith)
+                .filter(prefix -> normalized.startsWith(prefix + "-"))
                 .findFirst()
                 .map(prefix -> MODEL_ALIASES.getOrDefault(prefix, prefix))
                 .orElse(normalized);

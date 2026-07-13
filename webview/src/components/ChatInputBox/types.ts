@@ -345,6 +345,21 @@ export const CLAUDE_MODELS: ModelInfo[] = [
  */
 export const CODEX_MODELS: ModelInfo[] = [
   {
+    id: 'gpt-5.6-sol',
+    label: 'GPT-5.6 Sol',
+    description: 'Latest frontier agentic coding model.',
+  },
+  {
+    id: 'gpt-5.6-terra',
+    label: 'GPT-5.6 Terra',
+    description: 'Balanced agentic coding model for everyday work.',
+  },
+  {
+    id: 'gpt-5.6-luna',
+    label: 'GPT-5.6 Luna',
+    description: 'Fast and affordable agentic coding model.',
+  },
+  {
     id: 'gpt-5.5',
     label: 'GPT-5.5',
     description: 'Latest frontier model with stronger capabilities.',
@@ -353,41 +368,6 @@ export const CODEX_MODELS: ModelInfo[] = [
     id: 'gpt-5.4',
     label: 'GPT-5.4',
     description: 'Latest frontier model with enhanced capabilities.',
-  },
-  {
-    id: 'gpt-5.2-codex',
-    label: 'GPT-5.2-Codex',
-    description: 'Frontier agentic coding model.',
-  },
-  {
-    id: 'gpt-5.1-codex-max',
-    label: 'GPT-5.1-Codex-Max',
-    description: 'Codex-optimized flagship for deep and fast reasoning.',
-  },
-  {
-    id: 'gpt-5.4-mini',
-    label: 'GPT-5.4-Mini',
-    description: 'Smaller frontier agentic coding model.',
-  },
-  {
-    id: 'gpt-5.3-codex',
-    label: 'GPT-5.3-Codex',
-    description: 'Latest frontier agentic coding model with enhanced capabilities.',
-  },
-  {
-    id: 'gpt-5.3-codex-spark',
-    label: 'GPT-5.3-Codex-Spark',
-    description: 'Ultra-fast coding model.',
-  },
-  {
-    id: 'gpt-5.2',
-    label: 'GPT-5.2',
-    description: 'Optimized for professional work and long-running agents.',
-  },
-  {
-    id: 'gpt-5.1-codex-mini',
-    label: 'GPT-5.1-Codex-Mini',
-    description: 'Optimized for Codex. Cheaper, faster, but less capable.',
   },
 ];
 
@@ -453,9 +433,51 @@ export const MAX_EFFORT_CLAUDE_MODELS = new Set([
  * Reasoning Effort (thinking depth)
  * Controls the depth of reasoning for AI models
  * Claude API values: low, medium, high, xhigh, max
- * Codex API values: low, medium, high, xhigh
+ * Codex API values vary by model and include max/ultra for GPT-5.6 models.
  */
-export type ReasoningEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max';
+export type ReasoningEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max' | 'ultra';
+
+const DEFAULT_CODEX_REASONING_LEVELS: ReadonlySet<ReasoningEffort> = new Set([
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+]);
+
+const GPT_56_FULL_REASONING_LEVELS: ReadonlySet<ReasoningEffort> = new Set([
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+  'max',
+  'ultra',
+]);
+
+/**
+ * Codex reasoning capabilities from the bundled model catalog in Codex 0.144.1.
+ */
+export const CODEX_REASONING_LEVELS_BY_MODEL: Readonly<Record<string, ReadonlySet<ReasoningEffort>>> = {
+  'gpt-5.6-sol': GPT_56_FULL_REASONING_LEVELS,
+  'gpt-5.6-terra': GPT_56_FULL_REASONING_LEVELS,
+  'gpt-5.6-luna': new Set(['low', 'medium', 'high', 'xhigh', 'max']),
+};
+
+const GPT_56_BARE_SNAPSHOT_PATTERN = /^gpt-5\.6-\d{4}-\d{2}-\d{2}$/;
+const GPT_56_TIER_SNAPSHOT_PATTERN = /^(gpt-5\.6-(?:sol|terra|luna))-\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Resolve Codex reasoning levels, including the GPT-5.6 alias and dated snapshots.
+ */
+export function getCodexReasoningLevels(modelId: string | undefined | null): ReadonlySet<ReasoningEffort> {
+  const candidate = modelId?.trim().toLowerCase();
+  const aliasedModelId = candidate === 'gpt-5.6' || (candidate && GPT_56_BARE_SNAPSHOT_PATTERN.test(candidate))
+    ? 'gpt-5.6-sol'
+    : candidate;
+  const snapshotMatch = aliasedModelId?.match(GPT_56_TIER_SNAPSHOT_PATTERN);
+  const normalizedModelId = snapshotMatch?.[1] ?? aliasedModelId;
+  return (normalizedModelId && CODEX_REASONING_LEVELS_BY_MODEL[normalizedModelId])
+    || DEFAULT_CODEX_REASONING_LEVELS;
+}
 
 /**
  * Codex execution speed mode.
@@ -506,6 +528,12 @@ export const REASONING_LEVELS: ReasoningInfo[] = [
     label: 'Max',
     icon: 'codicon-rocket',
     description: 'Maximum reasoning depth',
+  },
+  {
+    id: 'ultra',
+    label: 'Ultra',
+    icon: 'codicon-star-full',
+    description: 'Maximum reasoning with automatic task delegation',
   },
 ];
 

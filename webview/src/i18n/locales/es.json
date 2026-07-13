@@ -1429,6 +1429,18 @@
       "tooltipDisabled": "1M contexto no disponible para Haiku"
     },
     "codex": {
+      "gpt56sol": {
+        "label": "GPT-5.6 Sol",
+        "description": "El modelo de codificación agéntico de vanguardia más reciente."
+      },
+      "gpt56terra": {
+        "label": "GPT-5.6 Terra",
+        "description": "Modelo de codificación agéntico equilibrado para el trabajo diario."
+      },
+      "gpt56luna": {
+        "label": "GPT-5.6 Luna",
+        "description": "Modelo de codificación agéntico rápido y asequible."
+      },
       "gpt53codex": {
         "label": "GPT-5.3-Codex",
         "description": "Último modelo de codificación agéntico con capacidades mejoradas."
@@ -1584,6 +1596,14 @@
     "xhigh": {
       "label": "Máximo",
       "description": "Profundidad máxima de razonamiento"
+    },
+    "max": {
+      "label": "Max",
+      "description": "Profundidad máxima de razonamiento para los problemas más difíciles"
+    },
+    "ultra": {
+      "label": "Ultra",
+      "description": "Razonamiento máximo con delegación automática de tareas"
     }
   },
   "errorBoundary": {

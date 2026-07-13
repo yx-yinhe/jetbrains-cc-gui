@@ -17,6 +17,7 @@ import com.intellij.openapi.diagnostic.Logger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.ArrayList;
 import java.util.List;
@@ -302,9 +303,42 @@ public class HistoryMessageInjector {
         JsonObject raw = frontendMsg.has("raw") && frontendMsg.get("raw").isJsonObject()
             ? frontendMsg.getAsJsonObject("raw")
             : null;
-        return raw != null
+        ClaudeSession.Message restoredMessage = raw != null
             ? new ClaudeSession.Message(messageType, content, raw.deepCopy())
             : new ClaudeSession.Message(messageType, content);
+        Long sourceTimestamp = parseFrontendTimestamp(frontendMsg);
+        if (sourceTimestamp != null) {
+            restoredMessage.timestamp = sourceTimestamp;
+        }
+        return restoredMessage;
+    }
+
+    private static Long parseFrontendTimestamp(JsonObject frontendMsg) {
+        if (!frontendMsg.has("timestamp") || frontendMsg.get("timestamp").isJsonNull()) {
+            return null;
+        }
+
+        JsonElement timestamp = frontendMsg.get("timestamp");
+        if (!timestamp.isJsonPrimitive()) {
+            return null;
+        }
+
+        try {
+            if (timestamp.getAsJsonPrimitive().isNumber()) {
+                return timestamp.getAsLong();
+            }
+            String value = timestamp.getAsString().trim();
+            if (value.isEmpty()) {
+                return null;
+            }
+            try {
+                return Long.parseLong(value);
+            } catch (NumberFormatException ignored) {
+                return Instant.parse(value).toEpochMilli();
+            }
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     /**

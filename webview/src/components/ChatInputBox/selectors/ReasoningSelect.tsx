@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   REASONING_LEVELS,
   EFFORT_SUPPORTED_CLAUDE_MODELS,
   MAX_EFFORT_CLAUDE_MODELS,
   XHIGH_EFFORT_CLAUDE_MODELS,
+  getCodexReasoningLevels,
   type ReasoningEffort,
 } from '../types';
 import { useDropdownPosition } from '../../../hooks/useDropdownPosition';
@@ -33,7 +34,9 @@ interface ReasoningSelectProps {
  * ReasoningSelect - Reasoning Effort Selector
  * Controls the depth of reasoning for AI models.
  * Visibility and available levels depend on the selected model:
- * - Codex: low/medium/high/xhigh
+ * - GPT-5.6 Sol/Terra: low/medium/high/xhigh/max/ultra
+ * - GPT-5.6 Luna: low/medium/high/xhigh/max
+ * - Other Codex models: low/medium/high/xhigh
  * - Claude Opus 4.8: low/medium/high/xhigh/max
  * - Claude Sonnet 5, Opus 4.6, and Sonnet 4.6: low/medium/high/max
  * - Claude Haiku 4.5 and legacy models: hidden (no adaptive thinking support)
@@ -53,9 +56,12 @@ export const ReasoningSelect = ({ value, onChange, disabled, selectedModel, curr
   const isVisible = currentProvider !== 'claude' || !selectedModel || EFFORT_SUPPORTED_CLAUDE_MODELS.has(selectedModel);
 
   // Build the list of available levels for the current model
-  const availableLevels = REASONING_LEVELS.filter(level => {
+  const availableLevels = useMemo(() => REASONING_LEVELS.filter(level => {
     if (currentProvider !== 'claude') {
-      return level.id !== 'max';
+      return getCodexReasoningLevels(selectedModel).has(level.id);
+    }
+    if (level.id === 'ultra') {
+      return false;
     }
     if (!selectedModel) {
       return true;
@@ -67,9 +73,11 @@ export const ReasoningSelect = ({ value, onChange, disabled, selectedModel, curr
       return MAX_EFFORT_CLAUDE_MODELS.has(selectedModel);
     }
     return true;
-  });
+  }), [currentProvider, selectedModel]);
 
-  const currentLevel = availableLevels.find(l => l.id === value) || availableLevels[availableLevels.length - 2] || availableLevels[0];
+  const currentLevel = availableLevels.find(level => level.id === value)
+    || availableLevels.find(level => level.id === 'high')
+    || availableLevels[0];
 
   useEffect(() => {
     if (!isVisible || availableLevels.some(level => level.id === value)) {

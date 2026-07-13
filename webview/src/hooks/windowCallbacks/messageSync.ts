@@ -230,6 +230,32 @@ const getAssistantComparableContent = (message: ClaudeMessage): string => {
 };
 
 /**
+ * Choose the final assistant text when the delta channel and backend snapshot
+ * disagree at stream end. Deltas normally win because a coalesced snapshot can
+ * lag behind, but an exact repetition of the complete backend text is evidence
+ * that the same cumulative delta was delivered more than once.
+ */
+export const reconcileFinalAssistantContent = (
+  streamingContent: string,
+  backendSnapshotContent?: string,
+): string => {
+  if (!streamingContent) return backendSnapshotContent ?? '';
+  if (!backendSnapshotContent || streamingContent === backendSnapshotContent) {
+    return streamingContent;
+  }
+
+  if (streamingContent.length > backendSnapshotContent.length
+      && streamingContent.length % backendSnapshotContent.length === 0) {
+    const repeatCount = streamingContent.length / backendSnapshotContent.length;
+    if (repeatCount > 1 && backendSnapshotContent.repeat(repeatCount) === streamingContent) {
+      return backendSnapshotContent;
+    }
+  }
+
+  return streamingContent;
+};
+
+/**
  * Extract timestamp from a message, handling both formats:
  * - Java Message.timestamp: number (milliseconds)
  * - SDK message.raw.timestamp: string (ISO format)

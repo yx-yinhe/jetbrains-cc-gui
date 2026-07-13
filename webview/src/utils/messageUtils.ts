@@ -55,6 +55,31 @@ export function getMessageKey(message: ClaudeMessage, index: number): string {
   return message.timestamp ? `${message.type}-${message.timestamp}` : `${message.type}-${index}`;
 }
 
+/**
+ * Build collision-free keys for rendering and message-anchor navigation.
+ * Provider history can legitimately contain messages with the same timestamp,
+ * while malformed snapshots can also repeat an otherwise stable identity.
+ */
+export function getUniqueMessageKeys(messages: ClaudeMessage[]): string[] {
+  const nextSuffixByBase = new Map<string, number>();
+  const usedKeys = new Set<string>();
+
+  return messages.map((message, index) => {
+    const baseKey = getMessageKey(message, index);
+    let suffix = nextSuffixByBase.get(baseKey) ?? 0;
+    let candidate = baseKey;
+
+    while (usedKeys.has(candidate)) {
+      suffix += 1;
+      candidate = `${baseKey}#${suffix}`;
+    }
+
+    nextSuffixByBase.set(baseKey, suffix);
+    usedKeys.add(candidate);
+    return candidate;
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Type guards - safer than type assertions
 // ---------------------------------------------------------------------------
@@ -601,9 +626,31 @@ export function mergeConsecutiveAssistantMessages(
 
     const combinedBlocks: ClaudeContentBlock[] = [];
     const contentParts: string[] = [];
+    let previousAcceptedMessage: ClaudeMessage | null = null;
+    let previousAcceptedBlocks: ClaudeContentBlock[] = [];
 
     for (const msg of group) {
+      if (msg.type !== 'assistant') {
+        // Tool results are skipped visually, but they are still a semantic
+        // boundary: identical prose before and after a tool can be intentional.
+        previousAcceptedMessage = null;
+        previousAcceptedBlocks = [];
+        continue;
+      }
       const blocks = normalizeBlocksFn(msg.raw) || [];
+
+      // A repeated backend completion can temporarily create two adjacent copies
+      // of the same assistant snapshot. The group merger would otherwise turn
+      // those copies into one bubble containing the entire answer twice.
+      const sameContent = previousAcceptedMessage != null
+        && (previousAcceptedMessage.content ?? '').trim() === (msg.content ?? '').trim();
+      const sameBlocks = sameContent
+        && previousAcceptedBlocks.length === blocks.length
+        && JSON.stringify(previousAcceptedBlocks) === JSON.stringify(blocks);
+      if (sameBlocks) {
+        continue;
+      }
+
       if (blocks.length > 0) {
         combinedBlocks.push(...blocks);
       }
@@ -613,6 +660,8 @@ export function mergeConsecutiveAssistantMessages(
           contentParts.push(msg.content);
         }
       }
+      previousAcceptedMessage = msg;
+      previousAcceptedBlocks = blocks;
     }
 
     const rawBase: ClaudeRawMessage =
@@ -688,7 +737,7 @@ export function mergeConsecutiveAssistantMessages(
       }
     }
 
-    const merged = buildMergedAssistantMessage(assistantGroup);
+    const merged = buildMergedAssistantMessage(group);
     if (cache) {
       cache.set(groupKey, { source: group, merged });
       if (cache.size > MESSAGE_MERGE_CACHE_LIMIT) {

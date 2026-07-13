@@ -114,4 +114,24 @@ describe('AiFeatureProviderModelPanel', () => {
 
     expect(onModelChange).toHaveBeenCalledWith('gpt-5.4');
   });
+
+  it('offers GPT-5.6 models without misrepresenting a persisted legacy model', () => {
+    render(
+      <AiFeatureProviderModelPanel
+        config={{
+          ...config,
+          models: { ...config.models, codex: 'gpt-5.3-codex' },
+        }}
+        settingsKeyPrefix="settings.commit.providerModel"
+        providerKeyPrefix="settings.basic.promptEnhancer.provider"
+      />
+    );
+
+    const [, modelSelect] = screen.getAllByRole('combobox') as HTMLSelectElement[];
+    expect(modelSelect.value).toBe('gpt-5.3-codex');
+    expect(screen.getByRole('option', { name: 'gpt-5.3-codex' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'GPT-5.6 Sol' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'GPT-5.6 Terra' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'GPT-5.6 Luna' })).toBeTruthy();
+  });
 });

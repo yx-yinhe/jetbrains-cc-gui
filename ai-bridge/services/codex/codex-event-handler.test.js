@@ -83,6 +83,120 @@ test('Codex item.updated agent_message emits incremental content deltas before c
   });
 });
 
+test('Codex agent_message keeps delta continuity when completion gains an item id', async () => {
+  const emittedMessages = [];
+  const state = createInitialEventState((message) => emittedMessages.push(message));
+
+  const captured = await captureStdout(async () => {
+    await processCodexEventStream(
+      eventsFrom([
+        {
+          type: 'item.updated',
+          item: { type: 'agent_message', text: 'Hel' },
+        },
+        {
+          type: 'item.completed',
+          item: { id: 'msg-1', type: 'agent_message', text: 'Hello' },
+        },
+      ]),
+      state,
+      makeConfig(),
+    );
+  });
+
+  const deltaLines = tagLines(captured, '[CONTENT_DELTA]');
+  assert.equal(deltaLines.length, 2);
+  assert.match(deltaLines[0], /"Hel"/);
+  assert.match(deltaLines[1], /"lo"/);
+  assert.equal(state.assistantText, 'Hello');
+  assert.equal(emittedMessages.length, 1);
+});
+
+test('Codex duplicate item.completed emits one assistant snapshot', async () => {
+  const emittedMessages = [];
+  const state = createInitialEventState((message) => emittedMessages.push(message));
+
+  const captured = await captureStdout(async () => {
+    await processCodexEventStream(
+      eventsFrom([
+        {
+          type: 'item.completed',
+          item: { id: 'msg-1', type: 'agent_message', text: 'Hello' },
+        },
+        {
+          type: 'item.completed',
+          item: { id: 'msg-1', type: 'agent_message', text: 'Hello' },
+        },
+      ]),
+      state,
+      makeConfig(),
+    );
+  });
+
+  assert.equal(tagLines(captured, '[CONTENT_DELTA]').length, 1);
+  assert.equal(state.assistantText, 'Hello');
+  assert.equal(emittedMessages.length, 1);
+});
+
+test('Codex duplicate completion text with a different item id is emitted once', async () => {
+  const emittedMessages = [];
+  const state = createInitialEventState((message) => emittedMessages.push(message));
+
+  const captured = await captureStdout(async () => {
+    await processCodexEventStream(
+      eventsFrom([
+        {
+          type: 'item.completed',
+          item: { id: 'msg-1', type: 'agent_message', text: 'Hello' },
+        },
+        {
+          type: 'event_msg',
+        },
+        {
+          type: 'item.completed',
+          item: { id: 'msg-2', type: 'agent_message', text: 'Hello' },
+        },
+      ]),
+      state,
+      makeConfig(),
+    );
+  });
+
+  assert.equal(tagLines(captured, '[CONTENT_DELTA]').length, 1);
+  assert.equal(state.assistantText, 'Hello');
+  assert.equal(emittedMessages.length, 1);
+});
+
+test('Codex allows identical assistant text again after a tool event', async () => {
+  const emittedMessages = [];
+  const state = createInitialEventState((message) => emittedMessages.push(message));
+
+  await captureStdout(async () => {
+    await processCodexEventStream(
+      eventsFrom([
+        {
+          type: 'item.completed',
+          item: { id: 'msg-1', type: 'agent_message', text: 'Done' },
+        },
+        {
+          type: 'item.completed',
+          item: { id: 'cmd-1', type: 'command_execution', command: 'pwd', aggregated_output: '/tmp' },
+        },
+        {
+          type: 'item.completed',
+          item: { id: 'msg-2', type: 'agent_message', text: 'Done' },
+        },
+      ]),
+      state,
+      makeConfig(),
+    );
+  });
+
+  const assistantMessages = emittedMessages.filter((message) => message.type === 'assistant'
+    && message.message?.content?.[0]?.type === 'text');
+  assert.equal(assistantMessages.length, 2);
+});
+
 test('isWindowsTaskkillParseNoise: matches English SUCCESS taskkill output', () => {
   const message =
     'Failed to parse item: SUCCESS: The process with PID 12345 (child process of PID 67890) has been terminated.';

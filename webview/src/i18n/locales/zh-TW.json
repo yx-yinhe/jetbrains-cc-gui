@@ -1434,6 +1434,18 @@
       "tooltipDisabled": "Haiku不支援1M上下文"
     },
     "codex": {
+      "gpt56sol": {
+        "label": "GPT-5.6 Sol",
+        "description": "最新的前沿智能體編程模型"
+      },
+      "gpt56terra": {
+        "label": "GPT-5.6 Terra",
+        "description": "適合日常工作的均衡型智能體編程模型"
+      },
+      "gpt56luna": {
+        "label": "GPT-5.6 Luna",
+        "description": "快速且經濟實惠的智能體編程模型"
+      },
       "gpt53codex": {
         "label": "GPT-5.3-Codex",
         "description": "最新前沿智慧編程模型，能力全面增強"
@@ -1589,6 +1601,14 @@
     "xhigh": {
       "label": "最多",
       "description": "最深推理，最高精度"
+    },
+    "max": {
+      "label": "Max",
+      "description": "適用於最困難問題的最大推理深度"
+    },
+    "ultra": {
+      "label": "Ultra",
+      "description": "最高推理強度，並自動委派任務"
     }
   },
   "errorBoundary": {

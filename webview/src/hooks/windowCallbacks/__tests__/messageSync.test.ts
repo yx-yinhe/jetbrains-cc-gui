@@ -12,6 +12,7 @@ import {
   preserveLatestMessagesOnShrink,
   preserveMessageIdentity,
   preserveStreamingAssistantContent,
+  reconcileFinalAssistantContent,
   stripDuplicateTrailingToolMessages,
   stripUuidFromRaw,
 } from '../messageSync';
@@ -66,6 +67,22 @@ describe('getStreamEndHandlingMode', () => {
 
   it('skips finalize for non-Codex providers when no stream is active', () => {
     expect(getStreamEndHandlingMode('claude', false, 0)).toBe('skip');
+  });
+});
+
+describe('reconcileFinalAssistantContent', () => {
+  it('uses the backend snapshot when streaming repeated the whole final answer', () => {
+    expect(reconcileFinalAssistantContent('answeranswer', 'answer')).toBe('answer');
+  });
+
+  it('keeps a longer non-repeated streaming suffix over a lagging snapshot', () => {
+    expect(reconcileFinalAssistantContent('answer with final digit 7', 'answer with final digit')).toBe(
+      'answer with final digit 7',
+    );
+  });
+
+  it('falls back to the backend snapshot when no content delta arrived', () => {
+    expect(reconcileFinalAssistantContent('', 'snapshot only')).toBe('snapshot only');
   });
 });
 

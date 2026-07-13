@@ -148,6 +148,26 @@ public class CodexMessageHandlerTest {
     }
 
     @Test
+    public void repeatedAssistantSnapshotWithoutStreamMarkersUpdatesFirstMessage() {
+        SessionState state = new SessionState();
+
+        CallbackHandler callbackHandler = new CallbackHandler();
+        RecordingCallback callback = new RecordingCallback();
+        callbackHandler.setCallback(callback);
+
+        CodexMessageHandler handler = new CodexMessageHandler(state, callbackHandler);
+        handler.onMessage("assistant", "{\"message\":{\"content\":[{\"type\":\"text\",\"text\":\"done\"}]}}");
+        handler.onMessage("assistant", "{\"message\":{\"content\":[{\"type\":\"text\",\"text\":\"done\"}]}}");
+
+        assertEquals(1, state.getMessages().size());
+        assertEquals("done", state.getMessages().get(0).content);
+        assertEquals(1, state.getMessages().get(0).raw
+                .getAsJsonObject("message")
+                .getAsJsonArray("content")
+                .size());
+    }
+
+    @Test
     public void thinkingDeltaIsForwardedAndPreservedWhenFinalTextSnapshotArrives() {
         SessionState state = new SessionState();
 

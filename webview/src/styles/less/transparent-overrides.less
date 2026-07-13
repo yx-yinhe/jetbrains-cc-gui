@@ -85,9 +85,33 @@ html,
 }
 
 .task-result,
+.task-field-content,
 .bash-command-block,
 [data-theme="light"] .bash-command-block {
     background: var(--cc-gui-code-block-bg, var(--bg-secondary));
+}
+
+/* Permission prompts are floating dialogs, while their command preview is a
+   tool-code surface derived from the normal-panel opacity setting. */
+.permission-dialog-v3 {
+    background: var(--cc-gui-menu-bg, var(--bg-elevated));
+}
+
+.permission-dialog-v3-command-box {
+    background: var(--cc-gui-code-block-bg, var(--bg-primary));
+}
+
+.permission-dialog-v3-option:not(.selected) {
+    background: var(--cc-gui-surface-bg, var(--bg-hover));
+}
+
+.permission-dialog-v3-option:not(.selected):hover {
+    background: var(--cc-gui-surface-bg-strong, var(--bg-active));
+}
+
+.permission-dialog-v3-option .option-key,
+.countdown-timer:not(.warning) {
+    background: var(--cc-gui-surface-bg-soft, var(--bg-elevated));
 }
 
 .bash-tool-header {

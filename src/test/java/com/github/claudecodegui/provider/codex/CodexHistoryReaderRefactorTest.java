@@ -17,6 +17,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -44,7 +46,7 @@ public class CodexHistoryReaderRefactorTest {
     @After
     public void restoreCustomPricingSingleton() throws IOException {
         CustomPricingProvider.setInstanceForTests(null);
-        Files.deleteIfExists(pricingIsolationDir);
+        deleteDirectory(pricingIsolationDir);
     }
 
     @Test
@@ -202,6 +204,84 @@ public class CodexHistoryReaderRefactorTest {
             assertEquals(1500, stats.totalUsage.cacheReadTokens);
             assertEquals(3750, stats.totalUsage.totalTokens);
             assertEquals(0.009125, stats.estimatedCost, 0.0000001);
+        } finally {
+            deleteDirectory(sessionsDir);
+        }
+    }
+
+    @Test
+    public void usageAggregatorUsesGpt56PricingForAliasesAndSnapshots() throws IOException {
+        Path sessionsDir = Files.createTempDirectory("codex-history-gpt56-pricing");
+        Map<String, Double> expectedCosts = Map.of(
+                "gpt-5.6-sol", 0.01825,
+                "gpt-5.6-terra-2026-07-09", 0.009125,
+                "gpt-5.6-luna-preview", 0.00365,
+                " GPT-5.6-2026-07-09 ", 0.01825,
+                "gpt-5.6-unknown-preview", 0.0051875
+        );
+        try {
+            int sessionNumber = 0;
+            for (String model : expectedCosts.keySet()) {
+                sessionNumber++;
+                writeSessionFile(
+                        sessionsDir.resolve("2026/07/13"),
+                        "gpt56-pricing-" + sessionNumber,
+                        line("2026-07-13T10:00:00Z", "turn_context", "{\"model\":\"" + model + "\"}"),
+                        line("2026-07-13T10:01:00Z", "event_msg",
+                                "{\"type\":\"user_message\",\"message\":\"Check GPT-5.6 pricing\"}"),
+                        line("2026-07-13T10:02:00Z", "event_msg",
+                                "{\"type\":\"token_count\",\"info\":{\"total_token_usage\":"
+                                        + "{\"input_tokens\":3500,\"output_tokens\":250,"
+                                        + "\"cached_input_tokens\":1500,\"total_tokens\":3750}}}")
+                );
+            }
+
+            CodexUsageAggregator aggregator = new CodexUsageAggregator(
+                    sessionsDir, new CodexHistoryParser(new Gson()), new Gson());
+            ProjectStatistics stats = aggregator.getProjectStatistics("all", 0);
+            Map<String, Double> actualCosts = stats.sessions.stream()
+                    .collect(Collectors.toMap(session -> session.model, session -> session.cost));
+
+            assertEquals(expectedCosts.keySet(), actualCosts.keySet());
+            expectedCosts.forEach((model, expectedCost) ->
+                    assertEquals(expectedCost, actualCosts.get(model), 0.0000001));
+            assertEquals(0.0544625, stats.estimatedCost, 0.0000001);
+        } finally {
+            deleteDirectory(sessionsDir);
+        }
+    }
+
+    @Test
+    public void usageAggregatorAppliesStableCustomPricingToGpt56Snapshots() throws IOException {
+        Path sessionsDir = Files.createTempDirectory("codex-history-gpt56-custom-pricing");
+        Files.writeString(pricingIsolationDir.resolve("config.json"), """
+                {
+                  "customModelPricing": {
+                    "codex": {
+                      "gpt-5.6-sol": { "outputCostPer1M": 40.0 }
+                    }
+                  }
+                }
+                """);
+        try {
+            writeSessionFile(
+                    sessionsDir.resolve("2026/07/13"),
+                    "gpt56-custom-pricing",
+                    line("2026-07-13T10:00:00Z", "turn_context",
+                            "{\"model\":\"gpt-5.6-sol-2026-07-09\"}"),
+                    line("2026-07-13T10:01:00Z", "event_msg",
+                            "{\"type\":\"user_message\",\"message\":\"Check custom pricing\"}"),
+                    line("2026-07-13T10:02:00Z", "event_msg",
+                            "{\"type\":\"token_count\",\"info\":{\"total_token_usage\":"
+                                    + "{\"input_tokens\":3500,\"output_tokens\":250,"
+                                    + "\"cached_input_tokens\":1500,\"total_tokens\":3750}}}")
+            );
+
+            CodexUsageAggregator aggregator = new CodexUsageAggregator(
+                    sessionsDir, new CodexHistoryParser(new Gson()), new Gson());
+            ProjectStatistics stats = aggregator.getProjectStatistics("all", 0);
+
+            assertEquals(0.02075, stats.estimatedCost, 0.0000001);
         } finally {
             deleteDirectory(sessionsDir);
         }

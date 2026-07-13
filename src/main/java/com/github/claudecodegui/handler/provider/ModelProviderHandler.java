@@ -13,8 +13,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.concurrency.AppExecutorUtil;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Handles model and provider selection, reasoning effort, and slash command refresh.
@@ -22,6 +25,11 @@ import java.util.concurrent.CompletableFuture;
 public class ModelProviderHandler {
 
     private static final Logger LOG = Logger.getInstance(ModelProviderHandler.class);
+    private static final int DEFAULT_MODEL_CONTEXT_LIMIT = 200_000;
+    private static final Pattern CAPACITY_SUFFIX_PATTERN =
+            Pattern.compile("\\s*\\[([0-9.]+)([kKmM])\\]\\s*$");
+    private static final Pattern SNAPSHOT_SUFFIX_PATTERN =
+            Pattern.compile("-\\d{4}-\\d{2}-\\d{2}$");
 
     static final Map<String, Integer> MODEL_CONTEXT_LIMITS = new HashMap<>();
     static {
@@ -40,6 +48,10 @@ public class ModelProviderHandler {
         // Haiku - no 1M context available
         MODEL_CONTEXT_LIMITS.put("claude-haiku-4-5", 200_000);
         // Codex/GPT models
+        // Codex SDK 0.144.1 catalog: all GPT-5.6 tiers expose a 372K context window.
+        MODEL_CONTEXT_LIMITS.put("gpt-5.6-sol", 372_000);
+        MODEL_CONTEXT_LIMITS.put("gpt-5.6-terra", 372_000);
+        MODEL_CONTEXT_LIMITS.put("gpt-5.6-luna", 372_000);
         MODEL_CONTEXT_LIMITS.put("gpt-5.4", 1_000_000);
         MODEL_CONTEXT_LIMITS.put("gpt-5.4-mini", 400_000);
         MODEL_CONTEXT_LIMITS.put("gpt-5.3-codex", 258_000);
@@ -356,16 +368,15 @@ public class ModelProviderHandler {
 
     public static int getModelContextLimit(String model) {
         if (model == null || model.isEmpty()) {
-            return 200_000;
+            return DEFAULT_MODEL_CONTEXT_LIMIT;
         }
 
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\s*\\[([0-9.]+)([kKmM])\\]\\s*$");
-        java.util.regex.Matcher matcher = pattern.matcher(model);
+        Matcher matcher = CAPACITY_SUFFIX_PATTERN.matcher(model);
 
         if (matcher.find()) {
             try {
                 double value = Double.parseDouble(matcher.group(1));
-                String unit = matcher.group(2).toLowerCase();
+                String unit = matcher.group(2).toLowerCase(Locale.ROOT);
 
                 if ("m".equals(unit)) {
                     return (int)(value * 1_000_000);
@@ -377,6 +388,47 @@ public class ModelProviderHandler {
             }
         }
 
-        return MODEL_CONTEXT_LIMITS.getOrDefault(model, 200_000);
+        String normalizedModel = normalizeModelForContextLookup(model);
+        return MODEL_CONTEXT_LIMITS.getOrDefault(normalizedModel, DEFAULT_MODEL_CONTEXT_LIMIT);
+    }
+
+    /**
+     * Normalizes model aliases and dated snapshots before looking up static metadata.
+     *
+     * <p>Codex may report either an alias (for example {@code gpt-5.6}) or a dated
+     * snapshot (for example {@code gpt-5.6-sol-2026-07-09}). The built-in context
+     * table intentionally stores only the stable family IDs, so aliases must be
+     * resolved to those IDs before the lookup.</p>
+     */
+    public static String normalizeModelForContextLookup(String model) {
+        if (model == null) {
+            return null;
+        }
+
+        String normalized = model.trim().toLowerCase(Locale.ROOT);
+        if (normalized.isEmpty()) {
+            return normalized;
+        }
+
+        // Snapshot IDs are stable model IDs with a trailing YYYY-MM-DD component.
+        normalized = SNAPSHOT_SUFFIX_PATTERN.matcher(normalized).replaceFirst("");
+
+        // Preserve an explicit GPT-5.6 tier when present. The bare GPT-5.6 alias
+        // and a bare dated snapshot resolve to Sol. Unknown suffixes are left
+        // untouched so they do not inherit a context limit accidentally.
+        if (normalized.equals("gpt-5.6")) {
+            return "gpt-5.6-sol";
+        }
+        if (normalized.startsWith("gpt-5.6-terra-")) {
+            return "gpt-5.6-terra";
+        }
+        if (normalized.startsWith("gpt-5.6-luna-")) {
+            return "gpt-5.6-luna";
+        }
+        if (normalized.startsWith("gpt-5.6-sol-")) {
+            return "gpt-5.6-sol";
+        }
+
+        return normalized;
     }
 }

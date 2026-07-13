@@ -5,7 +5,7 @@ import type { CodexFastMode, PermissionMode, ReasoningEffort } from '../../compo
 
 /**
  * Codex-specific selectable state. `reasoningEffort` lives here because the
- * value set is a Codex/OpenAI concept (low/medium/high/xhigh/max). The change
+ * value set is a Codex/OpenAI concept (low/medium/high/xhigh/max/ultra). The change
  * handler forwards directly to the backend via bridge event.
  */
 export function useCodexProvider() {

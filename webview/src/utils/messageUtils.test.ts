@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ClaudeMessage } from '../types';
 import {
   getMessageKey,
+  getUniqueMessageKeys,
   getContentBlocks,
   mergeConsecutiveAssistantMessages,
   formatCommandForDisplay,
@@ -68,6 +69,33 @@ describe('getMessageKey', () => {
   it('falls back to type-index when no uuid, __turnId, or timestamp', () => {
     const msg: ClaudeMessage = { type: 'assistant', content: 'hi' };
     expect(getMessageKey(msg, 7)).toBe('assistant-7');
+  });
+});
+
+describe('getUniqueMessageKeys', () => {
+  it('disambiguates messages that share the same timestamp identity', () => {
+    const timestamp = '2026-07-13T12:00:00.000Z';
+    const messages = [
+      makeMsg('user', 'first', { timestamp }),
+      makeMsg('user', 'second', { timestamp }),
+      makeMsg('user', 'third', { timestamp }),
+    ];
+
+    expect(getUniqueMessageKeys(messages)).toEqual([
+      `user-${timestamp}`,
+      `user-${timestamp}#1`,
+      `user-${timestamp}#2`,
+    ]);
+  });
+
+  it('avoids colliding with a naturally suffixed identity', () => {
+    const messages = [
+      makeMsg('user', 'natural suffix', { raw: { uuid: 'message#1' } as any }),
+      makeMsg('user', 'first duplicate', { raw: { uuid: 'message' } as any }),
+      makeMsg('user', 'second duplicate', { raw: { uuid: 'message' } as any }),
+    ];
+
+    expect(new Set(getUniqueMessageKeys(messages)).size).toBe(messages.length);
   });
 });
 
@@ -266,6 +294,42 @@ describe('mergeConsecutiveAssistantMessages', () => {
     const result = mergeConsecutiveAssistantMessages(messages, normalizeBlocks);
     expect(result).toHaveLength(1);
     expect(result[0].content).toBe('part1\npart2');
+  });
+
+  it('collapses exact duplicate assistant snapshots instead of repeating the answer', () => {
+    const duplicateRaw = { content: [{ type: 'text', text: 'final answer' }] } as any;
+    const messages: ClaudeMessage[] = [
+      makeMsg('assistant', 'final answer', { raw: duplicateRaw }),
+      makeMsg('assistant', 'final answer', {
+        raw: { content: [{ type: 'text', text: 'final answer' }] } as any,
+      }),
+    ];
+
+    const result = mergeConsecutiveAssistantMessages(messages, normalizeBlocks);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].content).toBe('final answer');
+    const mergedRaw = result[0].raw as { content?: Array<{ type?: string; text?: string }> };
+    expect(mergedRaw.content).toEqual([{ type: 'text', text: 'final answer' }]);
+  });
+
+  it('keeps identical assistant text when a tool result separates the messages', () => {
+    const messages: ClaudeMessage[] = [
+      makeMsg('assistant', 'Done', {
+        raw: { content: [{ type: 'text', text: 'Done' }] } as any,
+      }),
+      makeMsg('user', '[tool_result]', {
+        raw: { content: [{ type: 'tool_result', tool_use_id: 'tool-1', content: 'ok' }] } as any,
+      }),
+      makeMsg('assistant', 'Done', {
+        raw: { content: [{ type: 'text', text: 'Done' }] } as any,
+      }),
+    ];
+
+    const result = mergeConsecutiveAssistantMessages(messages, normalizeBlocks);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].content).toBe('Done\nDone');
   });
 
   it('merges tool-only assistant messages across user tool_result boundaries', () => {
@@ -1053,4 +1117,3 @@ describe('buildCompactNotification', () => {
     expect(result!.content).toBe('/compact');
   });
 });
-

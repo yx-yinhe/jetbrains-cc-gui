@@ -26,7 +26,9 @@ public enum SdkDefinition {
         "@openai/codex-sdk",
         "latest",
         Collections.emptyList(),
-        Arrays.asList("0.117.0", "0.116.0", "0.115.0"),
+        // Keep latest for normal online installs; prefer the first stable SDK
+        // verified with the GPT-5.6 catalog when remote version lookup is offline.
+        Arrays.asList("0.144.1", "0.117.0", "0.116.0", "0.115.0"),
         "Codex AI 提供商所需。"
     );
 

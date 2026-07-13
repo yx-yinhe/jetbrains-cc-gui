@@ -1,6 +1,6 @@
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AVAILABLE_MODELS, normalizeClaudeModelId, modelSupports1MContext, strip1MContextSuffix } from '../types';
+import { AVAILABLE_MODELS, CODEX_MODELS, normalizeClaudeModelId, modelSupports1MContext, strip1MContextSuffix } from '../types';
 import type { ModelInfo } from '../types';
 import { readClaudeModelMapping } from '../../../utils/claudeModelMapping';
 import { ProviderModelIcon } from '../../shared/ProviderModelIcon';
@@ -33,7 +33,7 @@ interface ModelSelectProps {
   onLongContextChange?: (enabled: boolean) => void;
 }
 
-const DEFAULT_MODEL_MAP: Record<string, ModelInfo> = AVAILABLE_MODELS.reduce(
+const DEFAULT_MODEL_MAP: Record<string, ModelInfo> = [...AVAILABLE_MODELS, ...CODEX_MODELS].reduce(
   (acc, model) => {
     acc[model.id] = model;
     return acc;
@@ -49,15 +49,11 @@ const MODEL_LABEL_KEYS: Record<string, string> = {
   'claude-opus-4-6': 'models.claude.opus46_1m.label',
   'claude-opus-4-6[1m]': 'models.claude.opus46_1m.label',
   'claude-haiku-4-5': 'models.claude.haiku45.label',
+  'gpt-5.6-sol': 'models.codex.gpt56sol.label',
+  'gpt-5.6-terra': 'models.codex.gpt56terra.label',
+  'gpt-5.6-luna': 'models.codex.gpt56luna.label',
   'gpt-5.5': 'models.codex.gpt55.label',
   'gpt-5.4': 'models.codex.gpt54.label',
-  'gpt-5.2-codex': 'models.codex.gpt52codex.label',
-  'gpt-5.1-codex-max': 'models.codex.gpt51codexMax.label',
-  'gpt-5.4-mini': 'models.codex.gpt54mini.label',
-  'gpt-5.3-codex': 'models.codex.gpt53codex.label',
-  'gpt-5.3-codex-spark': 'models.codex.gpt53codexSpark.label',
-  'gpt-5.2': 'models.codex.gpt52.label',
-  'gpt-5.1-codex-mini': 'models.codex.gpt51codexMini.label',
 };
 
 const MODEL_DESCRIPTION_KEYS: Record<string, string> = {
@@ -68,15 +64,11 @@ const MODEL_DESCRIPTION_KEYS: Record<string, string> = {
   'claude-opus-4-6': 'models.claude.opus46_1m.description',
   'claude-opus-4-6[1m]': 'models.claude.opus46_1m.description',
   'claude-haiku-4-5': 'models.claude.haiku45.description',
+  'gpt-5.6-sol': 'models.codex.gpt56sol.description',
+  'gpt-5.6-terra': 'models.codex.gpt56terra.description',
+  'gpt-5.6-luna': 'models.codex.gpt56luna.description',
   'gpt-5.5': 'models.codex.gpt55.description',
   'gpt-5.4': 'models.codex.gpt54.description',
-  'gpt-5.2-codex': 'models.codex.gpt52codex.description',
-  'gpt-5.1-codex-max': 'models.codex.gpt51codexMax.description',
-  'gpt-5.4-mini': 'models.codex.gpt54mini.description',
-  'gpt-5.3-codex': 'models.codex.gpt53codex.description',
-  'gpt-5.3-codex-spark': 'models.codex.gpt53codexSpark.description',
-  'gpt-5.2': 'models.codex.gpt52.description',
-  'gpt-5.1-codex-mini': 'models.codex.gpt51codexMini.description',
 };
 
 /**

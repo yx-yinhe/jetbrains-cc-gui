@@ -11,8 +11,19 @@ import {
 import type { CodexFastMode, PermissionMode, ReasoningEffort } from '../../components/ChatInputBox/types';
 
 const STORAGE_KEY = 'model-selection-state';
-const REASONING_VALUES = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
+const REASONING_VALUES = ['low', 'medium', 'high', 'xhigh', 'max', 'ultra'] as const;
 const CODEX_FAST_MODE_VALUES = ['normal', 'fast'] as const;
+const LEGACY_CODEX_MODEL_IDS = new Set([
+  'gpt-5.6',
+  'gpt-5.2-codex',
+  'gpt-5.1-codex-max',
+  'gpt-5.4-mini',
+  'gpt-5.3-codex',
+  'gpt-5.3-codex-spark',
+  'gpt-5.2',
+  'gpt-5.1-codex-mini',
+]);
+const GPT_56_SNAPSHOT_MODEL_PATTERN = /^gpt-5\.6(?:-(?:sol|terra|luna))?-\d{4}-\d{2}-\d{2}$/;
 
 const getCustomModels = (key: string): { id: string }[] => {
   try {
@@ -124,7 +135,10 @@ export function useModelStatePersistence(options: UseModelStatePersistenceOption
       };
       const applyCodexModel = (modelId: string) => {
         const customs = getCustomModels('codex-custom-models');
-        if (CODEX_MODELS.find(m => m.id === modelId) || customs.find(m => m.id === modelId)) {
+        if (CODEX_MODELS.find(m => m.id === modelId)
+          || customs.find(m => m.id === modelId)
+          || LEGACY_CODEX_MODEL_IDS.has(modelId)
+          || GPT_56_SNAPSHOT_MODEL_PATTERN.test(modelId)) {
           restoredCodexModel = modelId;
           setSelectedCodexModel(modelId);
         }

@@ -1546,6 +1546,18 @@
       "tooltipDisabled": "Haiku에서는 1M 컨텍스트를 사용할 수 없습니다"
     },
     "codex": {
+      "gpt56sol": {
+        "label": "GPT-5.6 Sol",
+        "description": "최신 프런티어 에이전틱 코딩 모델."
+      },
+      "gpt56terra": {
+        "label": "GPT-5.6 Terra",
+        "description": "일상 업무를 위한 균형 잡힌 에이전틱 코딩 모델."
+      },
+      "gpt56luna": {
+        "label": "GPT-5.6 Luna",
+        "description": "빠르고 경제적인 에이전틱 코딩 모델."
+      },
       "gpt53codex": {
         "label": "GPT-5.3-Codex",
         "description": "향상된 기능의 최신 프론티어 에이전트 코딩 모델."
@@ -1701,6 +1713,14 @@
     "xhigh": {
       "label": "최대",
       "description": "최대 추론 깊이"
+    },
+    "max": {
+      "label": "Max",
+      "description": "가장 어려운 문제를 위한 최대 추론 깊이"
+    },
+    "ultra": {
+      "label": "Ultra",
+      "description": "자동 작업 위임을 포함한 최대 추론"
     }
   },
   "errorBoundary": {

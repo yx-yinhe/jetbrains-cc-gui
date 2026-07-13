@@ -1,6 +1,8 @@
 package com.github.claudecodegui.handler.history;
 
 import com.github.claudecodegui.handler.core.HandlerContext;
+import com.github.claudecodegui.session.ClaudeSession;
+import com.github.claudecodegui.session.SessionState;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.project.Project;
@@ -9,6 +11,7 @@ import org.junit.Test;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.List;
 import java.lang.reflect.Proxy;
 
@@ -77,6 +80,23 @@ public class HistoryMessageInjectorTest {
         List<JsonObject> result = HistoryMessageInjector.convertCodexMessagesToFrontendBatch(messages);
 
         assertEquals(2, result.size());
+    }
+
+    @Test
+    public void restoreCodexMessagesPreservesSourceTimestamps() {
+        String firstTimestamp = "2026-04-30T09:40:26.701Z";
+        String secondTimestamp = "2026-04-30T09:40:27.701Z";
+        JsonArray messages = new JsonArray();
+        messages.add(eventUserMessage(firstTimestamp, "first"));
+        messages.add(eventUserMessage(secondTimestamp, "second"));
+        SessionState state = new SessionState();
+
+        HistoryMessageInjector.restoreCodexMessagesToSessionState(state, messages);
+
+        List<ClaudeSession.Message> restored = state.getMessages();
+        assertEquals(2, restored.size());
+        assertEquals(Instant.parse(firstTimestamp).toEpochMilli(), restored.get(0).timestamp);
+        assertEquals(Instant.parse(secondTimestamp).toEpochMilli(), restored.get(1).timestamp);
     }
 
     @Test

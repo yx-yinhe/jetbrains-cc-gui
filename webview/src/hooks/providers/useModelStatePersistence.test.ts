@@ -95,4 +95,20 @@ describe('useModelStatePersistence — boot sync does not clobber the persisted 
     expect(bridgeEventsFor('set_provider')).toHaveLength(1);
     expect(bridgeEventsFor('set_mode')).toHaveLength(0);
   });
+
+  it('restores GPT-5.6 ultra reasoning and preserves a legacy Codex model', () => {
+    const options = makeOptions();
+    localStorage.setItem('model-selection-state', JSON.stringify({
+      provider: 'codex',
+      codexModel: 'gpt-5.3-codex',
+      reasoningEffort: 'ultra',
+    }));
+
+    renderHook(() => useModelStatePersistence(options));
+    vi.advanceTimersByTime(200);
+
+    expect(options.setSelectedCodexModel).toHaveBeenCalledWith('gpt-5.3-codex');
+    expect(options.setReasoningEffort).toHaveBeenCalledWith('ultra');
+    expect(bridgeEventsFor('set_model')).toContainEqual(['set_model', 'gpt-5.3-codex']);
+  });
 });

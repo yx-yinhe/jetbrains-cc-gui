@@ -1672,6 +1672,18 @@
       }
     },
     "codex": {
+      "gpt56sol": {
+        "label": "GPT-5.6 Sol",
+        "description": "最新的前沿智能体编程模型"
+      },
+      "gpt56terra": {
+        "label": "GPT-5.6 Terra",
+        "description": "适合日常工作的均衡型智能体编程模型"
+      },
+      "gpt56luna": {
+        "label": "GPT-5.6 Luna",
+        "description": "快速且经济实惠的智能体编程模型"
+      },
       "gpt53codex": {
         "label": "GPT-5.3-Codex",
         "description": "最新前沿智能编程模型，能力全面增强"
@@ -1865,6 +1877,10 @@
     "max": {
       "label": "max",
       "description": "最大推理深度"
+    },
+    "ultra": {
+      "label": "Ultra",
+      "description": "最高推理强度，并自动委派任务"
     }
   },
   "errorBoundary": {

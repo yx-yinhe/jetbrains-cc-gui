@@ -4,6 +4,7 @@ import { APP_VERSION } from '../src/version/version';
 type BridgeWindow = Window & typeof globalThis & {
   sendToJava?: (message: string) => void;
   updateMessages?: (json: string) => void;
+  showPermissionDialog?: (json: string) => void;
 };
 
 test.beforeEach(async ({ page }) => {
@@ -26,6 +27,29 @@ async function showAssistantMarkdown(page: Page, content: string) {
       timestamp: '2026-01-01T00:00:00.000Z',
     }]));
   }, content);
+}
+
+async function showGenericTool(page: Page) {
+  await page.waitForFunction(() => typeof (window as BridgeWindow).updateMessages === 'function');
+  await page.evaluate(() => {
+    const bridgeWindow = window as BridgeWindow;
+    if (!bridgeWindow.updateMessages) throw new Error('updateMessages is not registered');
+    bridgeWindow.updateMessages(JSON.stringify([{
+      type: 'assistant',
+      content: 'Tool: exec',
+      raw: {
+        message: {
+          content: [{
+            type: 'tool_use',
+            id: 'exec-opacity-probe',
+            name: 'exec',
+            input: { PATCH: 'const result = await Promise.all(tasks);' },
+          }],
+        },
+      },
+      timestamp: '2026-01-01T00:00:00.000Z',
+    }]));
+  });
 }
 
 test('content font size reaches the chat input without scaling the UI', async ({ page }) => {
@@ -92,4 +116,58 @@ test('assistant Markdown code blocks use the independent opacity', async ({ page
     markdownVariable: 'rgba(18, 18, 18, 0.41)',
     toolCodeVariable: 'rgba(18, 18, 18, 0.32)',
   });
+});
+
+test('permission prompt surfaces use configured translucent backgrounds', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('appearanceOpacitySettings', JSON.stringify({
+      surface: 20,
+      codeBlock: 90,
+      menu: 37,
+    }));
+  });
+
+  await page.goto('/');
+  await page.waitForFunction(() => typeof (window as BridgeWindow).showPermissionDialog === 'function');
+  await page.evaluate(() => {
+    const bridgeWindow = window as BridgeWindow;
+    bridgeWindow.showPermissionDialog?.(JSON.stringify({
+      channelId: 'permission-opacity-probe',
+      toolName: 'Bash',
+      inputs: {
+        cwd: 'D:/workspace',
+        command: 'Get-Content README.md',
+      },
+    }));
+  });
+
+  const dialog = page.locator('.permission-dialog-v3');
+  await expect(dialog).toBeVisible();
+  const commandBox = page.locator('.permission-dialog-v3-command-box');
+  await expect(commandBox).toBeVisible();
+
+  expect(await dialog.evaluate((element) => getComputedStyle(element).backgroundColor))
+    .toBe('rgba(30, 30, 30, 0.37)');
+  expect(await commandBox.evaluate((element) => getComputedStyle(element).backgroundColor))
+    .toBe('rgba(18, 18, 18, 0.32)');
+});
+
+test('generic tool parameters use the normal-panel-derived code surface', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('appearanceOpacitySettings', JSON.stringify({
+      surface: 20,
+      codeBlock: 90,
+    }));
+  });
+
+  await page.goto('/');
+  await showGenericTool(page);
+  const toolHeader = page.locator('.message.assistant .task-header');
+  await expect(toolHeader).toBeVisible();
+  await toolHeader.click();
+
+  const parameterBlock = page.locator('.message.assistant .task-field-content');
+  await expect(parameterBlock).toBeVisible();
+  expect(await parameterBlock.evaluate((element) => getComputedStyle(element).backgroundColor))
+    .toBe('rgba(18, 18, 18, 0.32)');
 });

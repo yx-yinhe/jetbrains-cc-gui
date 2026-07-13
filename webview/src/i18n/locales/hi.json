@@ -1428,6 +1428,18 @@
       "tooltipDisabled": "Haiku के लिए 1M संदर्भ उपलब्ध नहीं है"
     },
     "codex": {
+      "gpt56sol": {
+        "label": "GPT-5.6 Sol",
+        "description": "नवीनतम फ्रंटियर एजेंटिक कोडिंग मॉडल।"
+      },
+      "gpt56terra": {
+        "label": "GPT-5.6 Terra",
+        "description": "रोजमर्रा के काम के लिए संतुलित एजेंटिक कोडिंग मॉडल।"
+      },
+      "gpt56luna": {
+        "label": "GPT-5.6 Luna",
+        "description": "तेज़ और किफ़ायती एजेंटिक कोडिंग मॉडल।"
+      },
       "gpt53codex": {
         "label": "GPT-5.3-Codex",
         "description": "नवीनतम फ्रंटियर एजेंटिक कोडिंग मॉडल, उन्नत क्षमताओं के साथ।"
@@ -1583,6 +1595,14 @@
     "xhigh": {
       "label": "अधिकतम",
       "description": "अधिकतम तर्क गहराई"
+    },
+    "max": {
+      "label": "Max",
+      "description": "सबसे कठिन समस्याओं के लिए अधिकतम तर्क गहराई"
+    },
+    "ultra": {
+      "label": "Ultra",
+      "description": "स्वचालित कार्य प्रत्यायोजन के साथ अधिकतम तर्क"
     }
   },
   "errorBoundary": {

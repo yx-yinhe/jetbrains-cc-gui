@@ -1429,6 +1429,18 @@
       "tooltipDisabled": "1M contexte non disponible pour Haiku"
     },
     "codex": {
+      "gpt56sol": {
+        "label": "GPT-5.6 Sol",
+        "description": "Dernier modèle de codage agentique de pointe."
+      },
+      "gpt56terra": {
+        "label": "GPT-5.6 Terra",
+        "description": "Modèle de codage agentique équilibré pour le travail quotidien."
+      },
+      "gpt56luna": {
+        "label": "GPT-5.6 Luna",
+        "description": "Modèle de codage agentique rapide et abordable."
+      },
       "gpt53codex": {
         "label": "GPT-5.3-Codex",
         "description": "Dernier modèle de codage agentique avec des capacités améliorées."
@@ -1584,6 +1596,14 @@
     "xhigh": {
       "label": "Maximum",
       "description": "Profondeur de raisonnement maximale"
+    },
+    "max": {
+      "label": "Max",
+      "description": "Profondeur de raisonnement maximale pour les problèmes les plus difficiles"
+    },
+    "ultra": {
+      "label": "Ultra",
+      "description": "Raisonnement maximal avec délégation automatique des tâches"
     }
   },
   "errorBoundary": {

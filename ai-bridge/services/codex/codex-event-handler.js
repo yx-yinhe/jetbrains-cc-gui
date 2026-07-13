@@ -125,6 +125,9 @@ export function createInitialEventState(emitMessage) {
     processedSessionFunctionOutputIds: new Set(),
     reasoningTextCache: new Map(),
     assistantTextCache: new Map(),
+    activeAssistantItemKey: null,
+    completedAssistantItemKeys: new Set(),
+    lastCompletedAssistantText: null,
     reasoningObserved: false,
     commandApprovalAbortRequested: false,
     runtimePolicyLogged: false,
@@ -524,7 +527,7 @@ async function handleItemCompleted(item, state, config) {
   maybeEmitReasoning(state, item);
 
   if (item.type === 'agent_message') {
-    handleAgentMessage(item, state);
+    handleAgentMessage(item, state, { completed: true });
   } else if (item.type === 'command_execution') {
     handleCommandExecution(item, state);
   } else if (item.type === 'file_change') {
@@ -536,12 +539,27 @@ async function handleItemCompleted(item, state, config) {
   }
 }
 
-function handleAgentMessage(item, state, { emitSnapshot = true } = {}) {
+function handleAgentMessage(item, state, { emitSnapshot = true, completed = false } = {}) {
   const text = item.text || '';
   console.log('[DEBUG] agent_message text length:', text.length);
   console.log('[DEBUG] agent_message text (first 100 chars):', text.substring(0, 100));
   const stableId = getStableItemId(item) ?? 'agent_message';
-  const previousText = state.assistantTextCache.get(stableId) ?? '';
+  let previousText = state.assistantTextCache.get(stableId) ?? '';
+  const repeatsLastCompletion = !!text && state.lastCompletedAssistantText === text;
+
+  // Runtime events are not schema-validated by the SDK. If item.updated lacks an
+  // id or item.completed changes it, the same cumulative text otherwise looks like
+  // a brand-new item. Reuse the active update's cache only when the completed text
+  // is clearly the same growing segment.
+  if (!previousText && state.activeAssistantItemKey) {
+    const activeText = state.assistantTextCache.get(state.activeAssistantItemKey) ?? '';
+    if (activeText && (text === activeText || text.startsWith(activeText))) {
+      previousText = activeText;
+    }
+  }
+  if (!previousText && repeatsLastCompletion) {
+    previousText = text;
+  }
   const delta = extractAppendedDelta(previousText, text);
   state.finalResponse = text;
   state.assistantTextCache.set(stableId, text);
@@ -549,8 +567,22 @@ function handleAgentMessage(item, state, { emitSnapshot = true } = {}) {
     state.assistantText += delta;
     emitContentDelta(delta);
   }
-  if (emitSnapshot && text && text.trim()) {
+  const duplicateCompletion = completed && (
+    repeatsLastCompletion
+    || (state.completedAssistantItemKeys.has(stableId) && previousText === text)
+  );
+  if (emitSnapshot && !duplicateCompletion && text && text.trim()) {
     state.emitMessage(textMsg(text));
+  }
+  if (completed) {
+    state.completedAssistantItemKeys.add(stableId);
+    if (state.activeAssistantItemKey && state.activeAssistantItemKey !== stableId) {
+      state.assistantTextCache.delete(state.activeAssistantItemKey);
+    }
+    state.activeAssistantItemKey = null;
+    state.lastCompletedAssistantText = text || null;
+  } else {
+    state.activeAssistantItemKey = stableId;
   }
 }
 
@@ -657,6 +689,13 @@ export async function processCodexEventStream(events, state, config) {
       await maybeLogRuntimePolicy(state, config);
       console.log('[DEBUG] Codex event:', event.type);
 
+      const itemStartsDifferentSegment = event.type === 'item.started'
+        || ((event.type === 'item.updated' || event.type === 'item.completed')
+          && event.item?.type !== 'agent_message');
+      if (event.type === 'thread.started' || event.type === 'turn.started' || itemStartsDifferentSegment) {
+        state.lastCompletedAssistantText = null;
+      }
+
       switch (event.type) {
       case 'thread.started': {
         state.currentThreadId = event.thread_id;
@@ -729,7 +768,7 @@ export async function processCodexEventStream(events, state, config) {
       case 'item.updated':
         maybeEmitReasoning(state, event.item);
         if (event.item && event.item.type === 'agent_message') {
-          handleAgentMessage(event.item, state, { emitSnapshot: false });
+          handleAgentMessage(event.item, state, { emitSnapshot: false, completed: false });
         }
         await replayMissingFunctionCallsDuringStream(state, config);
         break;

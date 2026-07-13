@@ -11,7 +11,7 @@ import type { ClaudeMessage, ClaudeRawMessage } from '../../../types';
 import { sendBridgeEvent } from '../../../utils/bridge';
 import { THROTTLE_INTERVAL } from '../../useStreamingMessages';
 import { parseSequence } from '../parseSequence';
-import { getStreamEndHandlingMode } from '../messageSync';
+import { getStreamEndHandlingMode, reconcileFinalAssistantContent } from '../messageSync';
 
 /**
  * Pour every tool_use_id carried by tool_result blocks inside one message's raw
@@ -585,7 +585,10 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
     // FIX: Prioritize streaming content over backend snapshot to prevent digit loss
     // Streaming content has all the latest deltas (including the final one just flushed).
     // Backend snapshot might be from an earlier coalescer push and may be incomplete.
-    const endedStreamingContent = streamingContentRef.current || backendSnapshotContent || '';
+    const endedStreamingContent = reconcileFinalAssistantContent(
+      streamingContentRef.current,
+      backendSnapshotContent,
+    );
     const endedBackendRaw = backendSnapshotRaw;
 
     // FIX: Clear streaming refs BEFORE setMessages updater to prevent race conditions.

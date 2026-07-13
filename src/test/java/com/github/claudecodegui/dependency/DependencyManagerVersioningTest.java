@@ -31,6 +31,11 @@ public class DependencyManagerVersioningTest {
     }
 
     @Test
+    public void shouldPreferVerifiedCodexSdkFallbackForOfflineResolution() {
+        assertEquals("0.144.1", SdkDefinition.CODEX_SDK.getFallbackVersions().get(0));
+    }
+
+    @Test
     public void shouldNormalizeLeadingVInRequestedVersion() {
         assertEquals("0.2.81", DependencyManager.normalizeRequestedVersion(" v0.2.81 "));
     }

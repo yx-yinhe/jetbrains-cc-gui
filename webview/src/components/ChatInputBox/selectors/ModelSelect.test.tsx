@@ -86,15 +86,29 @@ describe('ModelSelect', () => {
 
   it('Codex 内置模型列表应与目标设计一致', () => {
     expect(CODEX_MODELS.map((model) => model.id)).toEqual([
+      'gpt-5.6-sol',
+      'gpt-5.6-terra',
+      'gpt-5.6-luna',
       'gpt-5.5',
       'gpt-5.4',
-      'gpt-5.2-codex',
-      'gpt-5.1-codex-max',
-      'gpt-5.4-mini',
-      'gpt-5.3-codex',
-      'gpt-5.3-codex-spark',
-      'gpt-5.2',
-      'gpt-5.1-codex-mini',
     ]);
+    expect(CODEX_MODELS.slice(0, 3).map(({ id, description }) => ({ id, description }))).toEqual([
+      { id: 'gpt-5.6-sol', description: 'Latest frontier agentic coding model.' },
+      { id: 'gpt-5.6-terra', description: 'Balanced agentic coding model for everyday work.' },
+      { id: 'gpt-5.6-luna', description: 'Fast and affordable agentic coding model.' },
+    ]);
+  });
+
+  it('preserves a custom label for a built-in Codex model ID', () => {
+    render(
+      <ModelSelect
+        value="gpt-5.6-sol"
+        onChange={vi.fn()}
+        models={[{ ...CODEX_MODELS[0], label: 'My Sol' }]}
+        currentProvider="codex"
+      />,
+    );
+
+    expect(screen.getByRole('button').textContent).toContain('My Sol');
   });
 });

@@ -72,6 +72,33 @@ public class ModelProviderHandlerTest {
     }
 
     @Test
+    public void shouldUseCatalogContextLimitForEachGpt56Tier() {
+        assertEquals(372_000, ModelProviderHandler.getModelContextLimit("gpt-5.6-sol"));
+        assertEquals(372_000, ModelProviderHandler.getModelContextLimit("gpt-5.6-terra"));
+        assertEquals(372_000, ModelProviderHandler.getModelContextLimit("gpt-5.6-luna"));
+    }
+
+    @Test
+    public void shouldResolveGpt56AliasesAndDatedSnapshotsToStableTierIds() {
+        assertEquals("gpt-5.6-sol", ModelProviderHandler.normalizeModelForContextLookup("gpt-5.6"));
+        assertEquals("gpt-5.6-sol",
+                ModelProviderHandler.normalizeModelForContextLookup("gpt-5.6-2026-07-09"));
+        assertEquals("gpt-5.6-sol",
+                ModelProviderHandler.normalizeModelForContextLookup("GPT-5.6-SOL-2026-07-09"));
+        assertEquals("gpt-5.6-terra",
+                ModelProviderHandler.normalizeModelForContextLookup("gpt-5.6-terra-2026-07-09"));
+        assertEquals("gpt-5.6-luna",
+                ModelProviderHandler.normalizeModelForContextLookup("gpt-5.6-luna-preview"));
+        assertEquals("gpt-5.6-unknown-preview",
+                ModelProviderHandler.normalizeModelForContextLookup("gpt-5.6-unknown-preview"));
+
+        assertEquals(372_000, ModelProviderHandler.getModelContextLimit("gpt-5.6"));
+        assertEquals(372_000, ModelProviderHandler.getModelContextLimit("gpt-5.6-sol-2026-07-09"));
+        assertEquals(372_000, ModelProviderHandler.getModelContextLimit("gpt-5.6-terra-2026-07-09"));
+        assertEquals(200_000, ModelProviderHandler.getModelContextLimit("gpt-5.6-unknown-preview"));
+    }
+
+    @Test
     public void shouldReturnCorrectContextLimitsForClaudeModels() {
         // Base IDs without [1m] suffix - 200k context by default
         assertTrue(ModelProviderHandler.MODEL_CONTEXT_LIMITS.containsKey("claude-sonnet-5"));

@@ -30,7 +30,11 @@ const AiFeatureProviderModelPanel = ({
     ?? config.effectiveProvider
     ?? fallbackProvider;
   const statusProvider = config.effectiveProvider ?? config.provider ?? fallbackProvider;
-  const modelOptions = selectedProvider === 'codex' ? CODEX_MODELS : CLAUDE_MODELS;
+  const configuredModel = config.models[selectedProvider];
+  const builtInModelOptions = selectedProvider === 'codex' ? CODEX_MODELS : CLAUDE_MODELS;
+  const modelOptions = configuredModel && !builtInModelOptions.some(model => model.id === configuredModel)
+    ? [{ id: configuredModel, label: configuredModel }, ...builtInModelOptions]
+    : builtInModelOptions;
   const isAutoMode = config.provider == null;
   const statusText = config.resolutionSource === 'auto'
     ? t(`${settingsKeyPrefix}.currentProviderAuto`, {
@@ -74,7 +78,7 @@ const AiFeatureProviderModelPanel = ({
           <select
             id={`${settingsKeyPrefix}-model`}
             className={styles.modelSelect}
-            value={config.models[selectedProvider]}
+            value={configuredModel}
             onChange={(e) => onModelChange(e.target.value)}
             aria-label={t(`${settingsKeyPrefix}.modelLabel`)}
           >
