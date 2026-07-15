@@ -92,6 +92,7 @@
     "unknownFile": "Arquivo desconhecido",
     "attachmentsUploaded": "[Anexos Enviados]",
     "streamingConnected": "{{provider}} conectado, entendendo sua pergunta",
+    "output": { "progress": "Progresso", "summary": "Resumo" },
     "showEarlierMessages": "Mostrar {{count}} mensagens anteriores",
     "totalDuration": "Esta resposta levou",
     "tokenUsage": "{{input}} entrada / {{output}} saída",
@@ -211,6 +212,18 @@
         "enabled": "Ativado",
         "disabled": "Desativado",
         "hint": "Quando ativado, as respostas da IA aparecem caractere por caractere em tempo real, em vez de aguardar a resposta completa. Pode consumir mais recursos."
+      },
+      "progressHighlight": {
+        "label": "Destacar progresso da execução",
+        "enabled": "Destacado",
+        "disabled": "Exibição padrão",
+        "hint": "Marca o texto da IA ao redor das chamadas de ferramentas como progresso da execução."
+      },
+      "summaryHighlight": {
+        "label": "Destacar resumo final",
+        "enabled": "Destacado",
+        "disabled": "Exibição padrão",
+        "hint": "Destaca o texto final após as ferramentas e mostra seu início quando a execução termina."
       },
       "autoOpenFile": {
         "label": "Enviar Caminho do Arquivo Aberto",

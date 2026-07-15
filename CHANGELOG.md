@@ -1,3 +1,25 @@
+##### **2026年7月15日（v0.4.7-yx.4）**
+
+English:
+
+✨ Features and improvements
+- Highlight assistant execution progress around tool calls and distinguish the final post-tool summary with theme-aware labels, colors, and font weight.
+- Add independent, default-on Behavior settings for progress highlighting and final-summary highlighting/navigation; preferences persist locally.
+- Navigate to the beginning of the final summary when execution completes, while preserving the reading position when the user has paused automatic scrolling.
+- Keep ordinary assistant replies unchanged and provide the new labels and settings in all supported languages.
+- Mark this fork build as `v0.4.7-yx.4` with `MossX / yx-yinhe` vendor metadata.
+
+中文：
+
+✨ 新功能与改进
+- 对工具调用前后的 AI 执行进展进行突出显示，并通过适配主题的标签、颜色和字重区分工具调用后的最终总结。
+- 在“基础设置 > 行为”中新增两个默认开启的独立开关，分别控制进展标记和最终总结标记/定位，设置会在本地持久保存。
+- AI 执行完成后自动定位到最终总结开头；如果用户已暂停自动滚动，则保留当前阅读位置。
+- 普通 AI 回答保持现有样式，并为所有受支持语言补齐新标签和设置文案。
+- 将本 fork 构建标记为 `v0.4.7-yx.4`，vendor 元数据保持为 `MossX / yx-yinhe`。
+
+---
+
 ##### **2026年7月13日（v0.4.7-yx.3）**
 
 English:

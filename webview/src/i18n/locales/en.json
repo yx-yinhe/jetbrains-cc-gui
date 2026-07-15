@@ -92,6 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[Attachments Uploaded]",
     "streamingConnected": "{{provider}} connected, understanding your question",
+    "output": { "progress": "Progress", "summary": "Summary" },
     "showEarlierMessages": "Show {{count}} earlier messages",
     "totalDuration": "This reply took",
     "tokenUsage": "{{input}} in / {{output}} out",
@@ -215,6 +216,18 @@
         "enabled": "Enabled",
         "disabled": "Disabled",
         "hint": "When enabled, AI responses will appear character by character in real-time, instead of waiting for the complete response. May consume more resources."
+      },
+      "progressHighlight": {
+        "label": "Highlight Execution Progress",
+        "enabled": "Highlighted",
+        "disabled": "Standard display",
+        "hint": "Marks assistant text around tool calls as execution progress."
+      },
+      "summaryHighlight": {
+        "label": "Highlight Final Summary",
+        "enabled": "Highlighted",
+        "disabled": "Standard display",
+        "hint": "Highlights the final text after tool calls and navigates to its beginning when execution completes."
       },
       "autoOpenFile": {
         "label": "Send Opened File Path",

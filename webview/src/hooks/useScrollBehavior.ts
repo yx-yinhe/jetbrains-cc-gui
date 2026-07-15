@@ -12,6 +12,7 @@ export interface UseScrollBehaviorOptions {
   expandedThinking?: Record<string, boolean>;
   loading: boolean;
   streamingActive: boolean;
+  summaryNavigationEnabled?: boolean;
 }
 
 interface UseScrollBehaviorReturn {
@@ -38,6 +39,7 @@ export function useScrollBehavior({
   expandedThinking,
   loading,
   streamingActive,
+  summaryNavigationEnabled = true,
 }: UseScrollBehaviorOptions): UseScrollBehaviorReturn {
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -116,6 +118,32 @@ export function useScrollBehavior({
     requestAnimationFrame(() => {
       isAutoScrollingRef.current = false;
     });
+  }, []);
+
+  const scrollToLatestSummaryStart = useCallback((): boolean => {
+    const container = messagesContainerRef.current;
+    if (!container) return false;
+    const summaries = container.querySelectorAll<HTMLElement>('[data-assistant-summary="true"]');
+    const target = summaries.item(summaries.length - 1);
+    if (!target) return false;
+
+    isAutoScrollingRef.current = true;
+    isUserAtBottomRef.current = false;
+    container.classList.add(SCROLL_ANCHOR_ENABLED_CLASS);
+
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    container.scrollTop += targetRect.top - containerRect.top;
+    try {
+      target.scrollIntoView({ block: 'start', behavior: 'auto' });
+    } catch {
+      // The scrollTop adjustment above is the compatibility fallback.
+    }
+
+    requestAnimationFrame(() => {
+      isAutoScrollingRef.current = false;
+    });
+    return true;
   }, []);
 
   // Warm up layout after window regains focus (macOS JCEF drops GPU layers
@@ -241,12 +269,19 @@ export function useScrollBehavior({
   // from multiple update channels (onContentDelta + updateMessages) into
   // a single scroll-to-bottom per frame, preventing visual jitter.
   const scrollDebounceRef = useRef<number | null>(null);
+  const previousStreamingActiveRef = useRef(streamingActive);
 
   useLayoutEffect(() => {
+    const streamJustEnded = previousStreamingActiveRef.current && !streamingActive;
+    previousStreamingActiveRef.current = streamingActive;
     if (currentView !== 'chat') return;
     syncScrollAnchoring();
     if (userPausedRef.current) return;
     if (!isUserAtBottomRef.current) return;
+
+    if (streamJustEnded && summaryNavigationEnabled && scrollToLatestSummaryStart()) {
+      return;
+    }
 
     if (streamingActive) {
       if (scrollDebounceRef.current !== null) {
@@ -261,7 +296,17 @@ export function useScrollBehavior({
     } else {
       scrollToBottom();
     }
-  }, [currentView, messages, expandedThinking, loading, streamingActive, scrollToBottom, syncScrollAnchoring]);
+  }, [
+    currentView,
+    messages,
+    expandedThinking,
+    loading,
+    streamingActive,
+    summaryNavigationEnabled,
+    scrollToBottom,
+    scrollToLatestSummaryStart,
+    syncScrollAnchoring,
+  ]);
 
   // Cleanup scroll debounce on unmount
   useEffect(() => {

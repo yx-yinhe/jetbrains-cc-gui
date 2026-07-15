@@ -81,6 +81,10 @@ export interface BehaviorTabProps {
   onStreamingEnabledChange?: (enabled: boolean) => void;
   autoOpenFileEnabled?: boolean;
   onAutoOpenFileEnabledChange?: (enabled: boolean) => void;
+  progressHighlightEnabled?: boolean;
+  onProgressHighlightEnabledChange?: (enabled: boolean) => void;
+  summaryHighlightEnabled?: boolean;
+  onSummaryHighlightEnabledChange?: (enabled: boolean) => void;
   diffExpandedByDefault?: boolean;
   onDiffExpandedByDefaultChange?: (enabled: boolean) => void;
   commitGenerationEnabled?: boolean;
@@ -123,6 +127,10 @@ const BehaviorTab = ({
   onStreamingEnabledChange = () => {},
   autoOpenFileEnabled = true,
   onAutoOpenFileEnabledChange = () => {},
+  progressHighlightEnabled = true,
+  onProgressHighlightEnabledChange = () => {},
+  summaryHighlightEnabled = true,
+  onSummaryHighlightEnabledChange = () => {},
   diffExpandedByDefault = false,
   onDiffExpandedByDefaultChange = () => {},
   commitGenerationEnabled = true,
@@ -227,6 +235,56 @@ const BehaviorTab = ({
         <small className={styles.formHint}>
           <span className="codicon codicon-info" />
           <span>{t('settings.basic.streaming.hint')}</span>
+        </small>
+      </div>
+
+      <div className={styles.streamingSection}>
+        <div className={styles.fieldHeader}>
+          <span className="codicon codicon-pulse" />
+          <span className={styles.fieldLabel}>{t('settings.basic.progressHighlight.label')}</span>
+        </div>
+        <label className={styles.toggleWrapper}>
+          <input
+            type="checkbox"
+            className={styles.toggleInput}
+            checked={progressHighlightEnabled}
+            onChange={(e) => onProgressHighlightEnabledChange(e.target.checked)}
+          />
+          <span className={styles.toggleSlider} />
+          <span className={styles.toggleLabel}>
+            {progressHighlightEnabled
+              ? t('settings.basic.progressHighlight.enabled')
+              : t('settings.basic.progressHighlight.disabled')}
+          </span>
+        </label>
+        <small className={styles.formHint}>
+          <span className="codicon codicon-info" />
+          <span>{t('settings.basic.progressHighlight.hint')}</span>
+        </small>
+      </div>
+
+      <div className={styles.streamingSection}>
+        <div className={styles.fieldHeader}>
+          <span className="codicon codicon-check-all" />
+          <span className={styles.fieldLabel}>{t('settings.basic.summaryHighlight.label')}</span>
+        </div>
+        <label className={styles.toggleWrapper}>
+          <input
+            type="checkbox"
+            className={styles.toggleInput}
+            checked={summaryHighlightEnabled}
+            onChange={(e) => onSummaryHighlightEnabledChange(e.target.checked)}
+          />
+          <span className={styles.toggleSlider} />
+          <span className={styles.toggleLabel}>
+            {summaryHighlightEnabled
+              ? t('settings.basic.summaryHighlight.enabled')
+              : t('settings.basic.summaryHighlight.disabled')}
+          </span>
+        </label>
+        <small className={styles.formHint}>
+          <span className="codicon codicon-info" />
+          <span>{t('settings.basic.summaryHighlight.hint')}</span>
         </small>
       </div>
 

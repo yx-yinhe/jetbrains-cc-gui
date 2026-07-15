@@ -18,6 +18,7 @@ import {
   useMessageSender,
   useModelProviderState,
   useChatComputations,
+  useAssistantDisplaySettings,
 } from './hooks';
 import {
   NEW_SESSION_COMMANDS,
@@ -128,6 +129,13 @@ const App = () => {
   useThemeInit();
   useContextActions();
 
+  const {
+    progressHighlightEnabled,
+    summaryHighlightEnabled,
+    setProgressHighlightEnabled,
+    setSummaryHighlightEnabled,
+  } = useAssistantDisplaySettings();
+
   // Apply diff theme on app startup so diff styles work before opening Settings.
   useEffect(() => {
     const ideTheme = window.__INITIAL_IDE_THEME__ ?? null;
@@ -138,7 +146,13 @@ const App = () => {
   const {
     messagesContainerRef, messagesEndRef, inputAreaRef,
     isUserAtBottomRef, isAutoScrollingRef, userPausedRef,
-  } = useScrollBehavior({ currentView, messages, loading, streamingActive });
+  } = useScrollBehavior({
+    currentView,
+    messages,
+    loading,
+    streamingActive,
+    summaryNavigationEnabled: summaryHighlightEnabled,
+  });
 
   // ── Streaming messages ──
   const {
@@ -473,6 +487,10 @@ const App = () => {
           onSendShortcutChange={handleSendShortcutChange}
           autoOpenFileEnabled={autoOpenFileEnabled}
           onAutoOpenFileEnabledChange={handleAutoOpenFileEnabledChange}
+          progressHighlightEnabled={progressHighlightEnabled}
+          onProgressHighlightEnabledChange={setProgressHighlightEnabled}
+          summaryHighlightEnabled={summaryHighlightEnabled}
+          onSummaryHighlightEnabledChange={setSummaryHighlightEnabled}
           permissionDialogTimeoutSeconds={permissionDialogTimeoutSeconds}
           onPermissionDialogTimeoutChange={setPermissionDialogTimeoutSeconds}
         />
@@ -522,6 +540,8 @@ const App = () => {
           streamingEnabledSetting={streamingEnabledSetting}
           sendShortcut={sendShortcut}
           autoOpenFileEnabled={autoOpenFileEnabled}
+          progressHighlightEnabled={progressHighlightEnabled}
+          summaryHighlightEnabled={summaryHighlightEnabled}
           longContextEnabled={longContextEnabled}
           usagePercentage={usagePercentage}
           usageUsedTokens={usageUsedTokens}

@@ -189,4 +189,28 @@ describe('useScrollBehavior', () => {
     expect(container.classList.contains('scroll-anchor-enabled')).toBe(false);
     expect(endRectSpy).toHaveBeenCalled();
   });
+
+  it('moves to the latest summary start when streaming completes', () => {
+    const { container } = createScrollableContainer();
+    const summary = document.createElement('section');
+    summary.dataset.assistantSummary = 'true';
+    const scrollIntoView = vi.fn();
+    summary.scrollIntoView = scrollIntoView;
+    container.appendChild(summary);
+
+    const { result, rerender } = renderHook((props: HookProps) => useScrollBehavior(props), {
+      initialProps: { ...INITIAL_PROPS, streamingActive: true },
+    });
+
+    act(() => {
+      result.current.messagesContainerRef.current = container;
+    });
+    rerender({ ...INITIAL_PROPS, currentView: 'chat', streamingActive: true });
+    act(() => vi.runAllTimers());
+
+    rerender({ ...INITIAL_PROPS, currentView: 'chat', streamingActive: false });
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start', behavior: 'auto' });
+    expect(result.current.isUserAtBottomRef.current).toBe(false);
+  });
 });

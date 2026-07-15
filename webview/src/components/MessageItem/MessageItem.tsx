@@ -16,7 +16,7 @@ import {
   SearchToolGroupBlock,
   AgentGroupBlock,
 } from '../toolBlocks';
-import { ContentBlockRenderer } from './ContentBlockRenderer';
+import { ContentBlockRenderer, type AssistantTextPresentation } from './ContentBlockRenderer';
 import { formatTime } from '../../utils/helpers';
 import { copyToClipboard } from '../../utils/copyUtils';
 import { READ_TOOL_NAMES, EDIT_TOOL_NAMES, BASH_TOOL_NAMES, SEARCH_TOOL_NAMES, AGENT_TOOL_NAMES, isToolName } from '../../utils/toolConstants';
@@ -39,6 +39,40 @@ export interface MessageItemProps {
   toolResultSignature?: string;
   /** Current active provider id (e.g. 'claude', 'codex'); drives the streaming-connect label. */
   currentProvider?: string;
+  progressHighlightEnabled?: boolean;
+  summaryHighlightEnabled?: boolean;
+}
+
+export function getAssistantTextPresentations(
+  blocks: ClaudeContentBlock[],
+  isStreaming: boolean,
+  progressHighlightEnabled: boolean,
+  summaryHighlightEnabled: boolean,
+): AssistantTextPresentation[] {
+  const presentations = blocks.map((): AssistantTextPresentation => 'default');
+  if (!progressHighlightEnabled && !summaryHighlightEnabled) return presentations;
+
+  let lastToolIndex = -1;
+  let lastTextIndex = -1;
+  for (let index = 0; index < blocks.length; index += 1) {
+    const block = blocks[index];
+    if (block?.type === 'tool_use') lastToolIndex = index;
+    if (block?.type === 'text' && (block.text ?? '').trim()) lastTextIndex = index;
+  }
+  if (lastToolIndex < 0) return presentations;
+
+  const summaryIndex = !isStreaming && lastTextIndex > lastToolIndex ? lastTextIndex : -1;
+  for (let index = 0; index < blocks.length; index += 1) {
+    const block = blocks[index];
+    if (block?.type !== 'text' || !(block.text ?? '').trim()) continue;
+    if (index === summaryIndex) {
+      if (summaryHighlightEnabled) presentations[index] = 'summary';
+    } else if (progressHighlightEnabled) {
+      presentations[index] = 'progress';
+    }
+  }
+
+  return presentations;
 }
 
 /** Map provider id to a human-readable label used in UI text. */
@@ -335,6 +369,8 @@ export const MessageItem = memo(function MessageItem({
   onNavigateToDependencySettings,
   toolResultSignature: _toolResultSignature,
   currentProvider,
+  progressHighlightEnabled = true,
+  summaryHighlightEnabled = true,
 }: MessageItemProps): React.ReactElement {
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
   const [showStreamingConnectHint, setShowStreamingConnectHint] = useState(false);
@@ -464,6 +500,17 @@ export const MessageItem = memo(function MessageItem({
   }, [blocks, isMessageStreaming, manuallyExpandedThinking]);
 
   const groupedBlocks = useMemo(() => groupBlocks(blocks), [blocks]);
+  const textPresentations = useMemo(
+    () => message.type === 'assistant'
+      ? getAssistantTextPresentations(
+          blocks,
+          isMessageStreaming,
+          progressHighlightEnabled,
+          summaryHighlightEnabled,
+        )
+      : [],
+    [blocks, isMessageStreaming, message.type, progressHighlightEnabled, summaryHighlightEnabled],
+  );
 
   // Register user message DOM node for anchor navigation
   // Must be called before any early returns to satisfy React hooks rules
@@ -676,6 +723,7 @@ export const MessageItem = memo(function MessageItem({
             t={t}
             onToggleThinking={() => toggleThinking(blockIndex)}
             findToolResult={findToolResult}
+            textPresentation={textPresentations[blockIndex]}
           />
         </div>
       );

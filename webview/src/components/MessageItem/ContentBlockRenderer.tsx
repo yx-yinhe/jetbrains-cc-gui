@@ -129,7 +129,10 @@ export interface ContentBlockRendererProps {
   t: TFunction;
   onToggleThinking: () => void;
   findToolResult: (toolId: string | undefined, messageIndex: number) => ToolResultBlock | null | undefined;
+  textPresentation?: AssistantTextPresentation;
 }
+
+export type AssistantTextPresentation = 'default' | 'progress' | 'summary';
 
 export function ContentBlockRenderer({
   block,
@@ -143,15 +146,37 @@ export function ContentBlockRenderer({
   t,
   onToggleThinking,
   findToolResult,
+  textPresentation = 'default',
 }: ContentBlockRendererProps): React.ReactElement | null {
   if (block.type === 'text') {
-    return messageType === 'user' ? (
-      <CollapsibleTextBlock content={block.text ?? ''} />
-    ) : (
+    if (messageType === 'user') {
+      return <CollapsibleTextBlock content={block.text ?? ''} />;
+    }
+
+    const markdown = (
       <MarkdownBlock
         content={block.text ?? ''}
         isStreaming={isStreaming}
       />
+    );
+
+    if (textPresentation === 'default') {
+      return markdown;
+    }
+
+    const isSummary = textPresentation === 'summary';
+    return (
+      <section
+        className={`assistant-output assistant-output-${textPresentation}`}
+        data-assistant-summary={isSummary ? 'true' : undefined}
+        aria-label={isSummary ? t('chat.output.summary') : t('chat.output.progress')}
+      >
+        <div className="assistant-output-label">
+          <span className={`codicon ${isSummary ? 'codicon-check-all' : 'codicon-pulse'}`} aria-hidden="true" />
+          <span>{isSummary ? t('chat.output.summary') : t('chat.output.progress')}</span>
+        </div>
+        {markdown}
+      </section>
     );
   }
 

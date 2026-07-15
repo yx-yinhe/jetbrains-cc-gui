@@ -92,6 +92,8 @@ export interface ChatScreenProps {
   streamingEnabledSetting: ProviderState['streamingEnabledSetting'];
   sendShortcut: ProviderState['sendShortcut'];
   autoOpenFileEnabled: ProviderState['autoOpenFileEnabled'];
+  progressHighlightEnabled: boolean;
+  summaryHighlightEnabled: boolean;
   longContextEnabled: ProviderState['longContextEnabled'];
   usagePercentage: ProviderState['usagePercentage'];
   usageUsedTokens: ProviderState['usageUsedTokens'];
@@ -136,6 +138,7 @@ export const ChatScreen = ({
   sdkStatusLoaded, currentSdkInstalled,
   activeProviderConfig, claudeSettingsAlwaysThinkingEnabled,
   reasoningEffort, codexFastMode, streamingEnabledSetting, sendShortcut, autoOpenFileEnabled,
+  progressHighlightEnabled, summaryHighlightEnabled,
   longContextEnabled, usagePercentage, usageUsedTokens, usageMaxTokens,
   onModeSelect, onModelSelect, onAgentSelect, onReasoningChange, onCodexFastModeChange, onToggleThinking,
   onStreamingEnabledChange,
@@ -252,6 +255,8 @@ export const ChatScreen = ({
                     setCurrentView('settings');
                   }}
                   currentProvider={currentProvider}
+                  progressHighlightEnabled={progressHighlightEnabled}
+                  summaryHighlightEnabled={summaryHighlightEnabled}
                 />
               </ToolResultRawContext.Provider>
             </SubagentHistoryContext.Provider>

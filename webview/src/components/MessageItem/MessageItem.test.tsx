@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ClaudeContentBlock, ClaudeMessage, ToolResultBlock } from '../../types';
 import { extractMarkdownContent } from '../../utils/copyUtils';
-import { MessageItem } from './MessageItem';
+import { getAssistantTextPresentations, MessageItem } from './MessageItem';
 
 vi.mock('../MarkdownBlock', () => ({
   default: ({ content }: { content: string }) => <div data-testid="markdown-block">{content}</div>,
@@ -159,6 +159,35 @@ describe('MessageItem copy button visibility', () => {
 
     expect(screen.getByTestId('bash-tool-group-block')).toBeTruthy();
     expect(screen.queryAllByTestId('content-block-tool_use')).toHaveLength(0);
+  });
+});
+
+describe('assistant execution text presentation', () => {
+  const executionBlocks: ClaudeContentBlock[] = [
+    { type: 'text', text: 'Checking the project.' },
+    { type: 'tool_use', id: 'tool-1', name: 'exec_command', input: { command: 'git status' } },
+    { type: 'text', text: 'The change is complete.' },
+  ];
+
+  it('marks pre-tool text as progress and finalized post-tool text as summary', () => {
+    expect(getAssistantTextPresentations(executionBlocks, false, true, true)).toEqual([
+      'progress',
+      'default',
+      'summary',
+    ]);
+  });
+
+  it('keeps the growing post-tool text in progress until streaming ends', () => {
+    expect(getAssistantTextPresentations(executionBlocks, true, true, true)).toEqual([
+      'progress',
+      'default',
+      'progress',
+    ]);
+  });
+
+  it('does not style ordinary answers without tool calls', () => {
+    expect(getAssistantTextPresentations([{ type: 'text', text: 'A normal answer.' }], false, true, true))
+      .toEqual(['default']);
   });
 });
 

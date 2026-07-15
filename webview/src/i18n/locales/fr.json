@@ -92,6 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[Pièces jointes téléchargées]",
     "streamingConnected": "{{provider}} connecté, en train de comprendre votre question",
+    "output": { "progress": "Progression", "summary": "Résumé" },
     "showEarlierMessages": "Afficher {{count}} messages précédents",
     "totalDuration": "Cette réponse a pris",
     "tokenUsage": "{{input}} entrée / {{output}} sortie",
@@ -211,6 +212,18 @@
         "enabled": "Enabled",
         "disabled": "Disabled",
         "hint": "When enabled, AI responses will appear character by character in real-time, instead of waiting for the complete response. May consume more resources."
+      },
+      "progressHighlight": {
+        "label": "Mettre en évidence la progression",
+        "enabled": "Mise en évidence",
+        "disabled": "Affichage standard",
+        "hint": "Marque le texte de l’IA autour des appels d’outils comme progression d’exécution."
+      },
+      "summaryHighlight": {
+        "label": "Mettre en évidence le résumé final",
+        "enabled": "Mise en évidence",
+        "disabled": "Affichage standard",
+        "hint": "Met en évidence le texte final après les outils et affiche son début à la fin de l’exécution."
       },
       "autoOpenFile": {
         "label": "Envoyer le chemin du fichier ouvert",

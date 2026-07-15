@@ -51,6 +51,10 @@ interface SettingsViewProps {
   // Auto open file configuration (passed from App.tsx for state sync)
   autoOpenFileEnabled?: boolean;
   onAutoOpenFileEnabledChange?: (enabled: boolean) => void;
+  progressHighlightEnabled?: boolean;
+  onProgressHighlightEnabledChange?: (enabled: boolean) => void;
+  summaryHighlightEnabled?: boolean;
+  onSummaryHighlightEnabledChange?: (enabled: boolean) => void;
   // Permission dialog timeout configuration (passed from App.tsx for state sync)
   permissionDialogTimeoutSeconds?: number;
   onPermissionDialogTimeoutChange?: (seconds: number) => void;
@@ -66,6 +70,10 @@ const SettingsView = ({
   onSendShortcutChange: onSendShortcutChangeProp,
   autoOpenFileEnabled: autoOpenFileEnabledProp,
   onAutoOpenFileEnabledChange: onAutoOpenFileEnabledChangeProp,
+  progressHighlightEnabled = true,
+  onProgressHighlightEnabledChange = () => {},
+  summaryHighlightEnabled = true,
+  onSummaryHighlightEnabledChange = () => {},
   permissionDialogTimeoutSeconds: permissionDialogTimeoutSecondsProp,
   onPermissionDialogTimeoutChange: onPermissionDialogTimeoutChangeProp,
 }: SettingsViewProps) => {
@@ -495,6 +503,10 @@ const SettingsView = ({
               onSendShortcutChange={handleSendShortcutChange}
               autoOpenFileEnabled={autoOpenFileEnabled}
               onAutoOpenFileEnabledChange={handleAutoOpenFileEnabledChange}
+              progressHighlightEnabled={progressHighlightEnabled}
+              onProgressHighlightEnabledChange={onProgressHighlightEnabledChange}
+              summaryHighlightEnabled={summaryHighlightEnabled}
+              onSummaryHighlightEnabledChange={onSummaryHighlightEnabledChange}
               chatBgColor={chatBgColor}
               onChatBgColorChange={setChatBgColor}
               userMsgColor={userMsgColor}
