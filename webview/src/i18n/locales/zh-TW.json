@@ -92,7 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[已上傳附件]",
     "streamingConnected": "{{provider}} 已成功連接，正在理解問題",
-    "output": { "progress": "進度", "summary": "總結" },
+    "executionProcess": { "label": "執行過程", "itemCount": "{{count}} 項", "completed": "已完成" },
     "showEarlierMessages": "顯示之前的 {{count}} 則訊息",
     "totalDuration": "本次耗時",
     "tokenUsage": "輸入 {{input}} / 輸出 {{output}}",
@@ -213,17 +213,17 @@
         "disabled": "Disabled",
         "hint": "When enabled, AI responses will appear character by character in real-time, instead of waiting for the complete response. May consume more resources."
       },
-      "progressHighlight": {
-        "label": "醒目顯示執行進度",
-        "enabled": "已醒目顯示",
-        "disabled": "一般顯示",
-        "hint": "將工具呼叫前後的 AI 說明文字標記為執行進度。"
+      "processCollapse": {
+        "label": "完成後預設摺疊執行過程",
+        "enabled": "預設摺疊",
+        "disabled": "預設展開",
+        "hint": "執行期間正常顯示全部內容；完成後預設摺疊過程內容，最終回答保持可見。"
       },
-      "summaryHighlight": {
-        "label": "醒目顯示最終總結",
-        "enabled": "已醒目顯示",
-        "disabled": "一般顯示",
-        "hint": "醒目顯示工具呼叫後的最終文字，並在執行完成時定位到總結開頭。"
+      "completionJumpToUser": {
+        "label": "完成後跳至本輪提問",
+        "enabled": "自動跳轉",
+        "disabled": "保持目前位置",
+        "hint": "執行完成後，自動捲動到發起本輪對話的使用者訊息。"
       },
       "autoOpenFile": {
         "label": "發送已開啟的檔案路徑",

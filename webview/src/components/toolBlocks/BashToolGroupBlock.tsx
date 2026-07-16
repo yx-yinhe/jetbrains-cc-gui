@@ -83,8 +83,7 @@ function truncateCommand(command: string, maxLength = 60): string {
 }
 
 const BashToolGroupBlock = ({ items, deniedToolIds }: BashToolGroupBlockProps) => {
-  // Default to expanded
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   // Track which item detail is expanded
   const [expandedItemIndex, setExpandedItemIndex] = useState<number | null>(null);
   const { t } = useTranslation();
@@ -171,17 +170,23 @@ const BashToolGroupBlock = ({ items, deniedToolIds }: BashToolGroupBlockProps) =
   return (
     <div className="task-container bash-group-container">
       {/* Header - always visible */}
-      <div
+      <button
+        type="button"
         className="task-header bash-group-header"
         onClick={() => setExpanded((prev) => !prev)}
+        aria-expanded={expanded}
       >
         <div className="task-title-section">
+          <span
+            className={`bash-group-chevron codicon ${expanded ? 'codicon-chevron-down' : 'codicon-chevron-right'}`}
+            aria-hidden="true"
+          />
           <span className="tool-title-text">
             {t('tools.bashGroupBatchRun')} ({totalCount})
           </span>
         </div>
         <div className="bash-group-summary">{getProgressSummary()}</div>
-      </div>
+      </button>
 
       {/* Timeline list - visible when expanded */}
       {expanded && (

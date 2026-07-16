@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ClaudeContentBlock, ClaudeMessage, ToolResultBlock } from '../../types';
 import { extractMarkdownContent } from '../../utils/copyUtils';
-import { getAssistantTextPresentations, MessageItem } from './MessageItem';
+import { getCompletionSummaryBlockIndex, MessageItem } from './MessageItem';
 
 vi.mock('../MarkdownBlock', () => ({
   default: ({ content }: { content: string }) => <div data-testid="markdown-block">{content}</div>,
@@ -20,7 +20,9 @@ vi.mock('../toolBlocks', () => ({
 
 vi.mock('./ContentBlockRenderer', () => ({
   ContentBlockRenderer: ({ block }: { block: ClaudeContentBlock }) => (
-    <div data-testid={`content-block-${block.type}`}>{block.type}</div>
+    <div data-testid={`content-block-${block.type}`}>
+      {block.type === 'text' ? block.text : block.type}
+    </div>
   ),
 }));
 
@@ -37,6 +39,9 @@ const t = ((key: string, opts?: Record<string, string>) => {
     'chat.totalDuration': '本次耗时',
     'chat.tokenUsage': '输入 {{input}} / 输出 {{output}}',
     'chat.tokenUsageDetail': '本轮合计 — 输入 {{input}} · 缓存写入 {{cacheWrite}} · 缓存读取 {{cacheRead}} · 输出 {{output}}',
+    'chat.executionProcess.label': '执行过程',
+    'chat.executionProcess.itemCount': '{{count}} 项',
+    'chat.executionProcess.completed': '已完成',
   };
   let result = translations[key] ?? key;
   if (opts) {
@@ -66,22 +71,33 @@ const getContentBlocks = (message: ClaudeMessage): ClaudeContentBlock[] => {
 
 const findToolResult = (_toolId: string | undefined, _messageIndex: number): ToolResultBlock | null => null;
 
-function renderMessageItem(message: ClaudeMessage) {
-  return render(
+interface RenderMessageOptions {
+  isLast?: boolean;
+  streamingActive?: boolean;
+  processCollapseEnabled?: boolean;
+}
+
+function buildMessageItem(message: ClaudeMessage, options: RenderMessageOptions = {}) {
+  return (
     <MessageItem
       message={message}
       messageIndex={0}
       messageKey="message-0"
-      isLast={false}
-      streamingActive={false}
+      isLast={options.isLast ?? false}
+      streamingActive={options.streamingActive ?? false}
       isThinking={false}
       t={t}
       getMessageText={getMessageText}
       getContentBlocks={getContentBlocks}
       findToolResult={findToolResult}
       extractMarkdownContent={extractMarkdownContent}
+      processCollapseEnabled={options.processCollapseEnabled}
     />
   );
+}
+
+function renderMessageItem(message: ClaudeMessage, options: RenderMessageOptions = {}) {
+  return render(buildMessageItem(message, options));
 }
 
 describe('MessageItem copy button visibility', () => {
@@ -129,6 +145,7 @@ describe('MessageItem copy button visibility', () => {
 
     renderMessageItem(message);
 
+    fireEvent.click(screen.getByRole('button', { name: /执行过程/ }));
     expect(screen.getByTestId('bash-tool-block')).toBeTruthy();
     expect(screen.getByTestId('content-block-text')).toBeTruthy();
     expect(screen.getByRole('button', { name: '复制消息' })).toBeTruthy();
@@ -162,32 +179,70 @@ describe('MessageItem copy button visibility', () => {
   });
 });
 
-describe('assistant execution text presentation', () => {
-  const executionBlocks: ClaudeContentBlock[] = [
-    { type: 'text', text: 'Checking the project.' },
-    { type: 'tool_use', id: 'tool-1', name: 'exec_command', input: { command: 'git status' } },
-    { type: 'text', text: 'The change is complete.' },
-  ];
+describe('assistant execution process folding', () => {
+  const executionMessage: ClaudeMessage = {
+    type: 'assistant',
+    durationMs: 84000,
+    raw: {
+      content: [
+        { type: 'thinking', thinking: 'Inspecting the project.' },
+        { type: 'tool_use', id: 'tool-1', name: 'exec_command', input: { command: 'git status' } },
+        { type: 'text', text: 'The change is complete.' },
+      ],
+    } as any,
+  };
 
-  it('marks pre-tool text as progress and finalized post-tool text as summary', () => {
-    expect(getAssistantTextPresentations(executionBlocks, false, true, true)).toEqual([
-      'progress',
-      'default',
-      'summary',
-    ]);
+  it('recognizes structurally separate process content without requiring a tool call', () => {
+    expect(getCompletionSummaryBlockIndex([
+      { type: 'thinking', thinking: 'Reasoning.' },
+      { type: 'text', text: 'Final answer.' },
+    ])).toBe(1);
+    expect(getCompletionSummaryBlockIndex([
+      { type: 'text', text: 'Interim update.' },
+      { type: 'text', text: 'Final answer.' },
+    ])).toBe(1);
+    expect(getCompletionSummaryBlockIndex([{ type: 'text', text: 'Ordinary answer.' }])).toBe(-1);
   });
 
-  it('keeps the growing post-tool text in progress until streaming ends', () => {
-    expect(getAssistantTextPresentations(executionBlocks, true, true, true)).toEqual([
-      'progress',
-      'default',
-      'progress',
-    ]);
+  it('collapses completed process content while leaving the final answer visible', () => {
+    renderMessageItem(executionMessage);
+
+    const toggle = screen.getByRole('button', { name: /执行过程/ });
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByText('thinking')).toBeNull();
+    expect(screen.getByText('The change is complete.')).toBeTruthy();
+
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByText('thinking')).toBeTruthy();
   });
 
-  it('does not style ordinary answers without tool calls', () => {
-    expect(getAssistantTextPresentations([{ type: 'text', text: 'A normal answer.' }], false, true, true))
-      .toEqual(['default']);
+  it('shows process content normally while the turn is streaming', () => {
+    renderMessageItem(executionMessage, { isLast: true, streamingActive: true });
+
+    expect(screen.queryByRole('button', { name: /执行过程/ })).toBeNull();
+    expect(screen.getByText('thinking')).toBeTruthy();
+    expect(screen.getByText('The change is complete.')).toBeTruthy();
+  });
+
+  it('starts expanded when default folding is disabled and remains manually collapsible', () => {
+    renderMessageItem(executionMessage, { processCollapseEnabled: false });
+
+    const toggle = screen.getByRole('button', { name: /执行过程/ });
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('preserves an earlier turn fold choice when the next turn starts', () => {
+    const view = renderMessageItem(executionMessage, { isLast: true });
+    const toggle = screen.getByRole('button', { name: /执行过程/ });
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+
+    view.rerender(buildMessageItem(executionMessage, { isLast: false, streamingActive: true }));
+
+    expect(screen.getByRole('button', { name: /执行过程/ }).getAttribute('aria-expanded')).toBe('true');
   });
 });
 

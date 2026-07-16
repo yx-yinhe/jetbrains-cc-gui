@@ -92,7 +92,7 @@
     "unknownFile": "알 수 없는 파일",
     "attachmentsUploaded": "[첨부파일 업로드됨]",
     "streamingConnected": "{{provider}} 연결됨, 질문을 이해하는 중",
-    "output": { "progress": "진행", "summary": "요약" },
+    "executionProcess": { "label": "실행 과정", "itemCount": "{{count}}개 항목", "completed": "완료" },
     "showEarlierMessages": "이전 메시지 {{count}}개 보기",
     "totalDuration": "이번 응답 소요 시간",
     "tokenUsage": "입력 {{input}} / 출력 {{output}}",
@@ -213,17 +213,17 @@
         "disabled": "비활성화",
         "hint": "활성화하면 AI 응답이 실시간으로 한 글자씩 표시됩니다. 완전한 응답을 기다리지 않습니다. 리소스를 더 많이 사용할 수 있습니다."
       },
-      "progressHighlight": {
-        "label": "실행 진행 강조",
-        "enabled": "강조 표시",
-        "disabled": "일반 표시",
-        "hint": "도구 호출 전후의 AI 텍스트를 실행 진행으로 표시합니다."
+      "processCollapse": {
+        "label": "완료 후 실행 과정 접기",
+        "enabled": "기본으로 접기",
+        "disabled": "기본으로 펼치기",
+        "hint": "실행 중에는 모두 표시하고 완료 후 과정 내용을 접습니다. 최종 답변은 계속 표시됩니다."
       },
-      "summaryHighlight": {
-        "label": "최종 요약 강조",
-        "enabled": "강조 표시",
-        "disabled": "일반 표시",
-        "hint": "도구 호출 후의 최종 텍스트를 강조하고 실행 완료 시 시작 위치로 이동합니다."
+      "completionJumpToUser": {
+        "label": "완료 후 현재 질문으로 이동",
+        "enabled": "자동 이동",
+        "disabled": "현재 위치 유지",
+        "hint": "실행 완료 시 현재 턴을 시작한 사용자 메시지로 이동합니다."
       },
       "autoOpenFile": {
         "label": "파일 자동 열기",

@@ -3,19 +3,21 @@
 English:
 
 ✨ Features and improvements
-- Highlight assistant execution progress around tool calls and distinguish the final post-tool summary with theme-aware labels, colors, and font weight.
-- Add independent, default-on Behavior settings for progress highlighting and final-summary highlighting/navigation; preferences persist locally.
-- Navigate to the beginning of the final summary when execution completes, while preserving the reading position when the user has paused automatic scrolling.
-- Keep ordinary assistant replies unchanged and provide the new labels and settings in all supported languages.
+- Group consecutive batch shell commands into a single timeline block that starts collapsed by default.
+- Keep process content fully visible while a turn is running; after completion, place structurally separate process content behind a neutral, collapsed disclosure while leaving the final answer as normal Markdown.
+- Add two independent, default-on Behavior settings for the completed-turn fold default and automatic navigation to the user question that started the current turn; preferences persist locally.
+- Preserve each completed turn's fold choice when later turns start, and reset scroll following normally when the next message is sent.
+- Provide the new process labels and settings in all supported languages without semantic progress/problem/solution classification or special answer highlighting.
 - Mark this fork build as `v0.4.7-yx.4` with `MossX / yx-yinhe` vendor metadata.
 
 中文：
 
 ✨ 新功能与改进
-- 对工具调用前后的 AI 执行进展进行突出显示，并通过适配主题的标签、颜色和字重区分工具调用后的最终总结。
-- 在“基础设置 > 行为”中新增两个默认开启的独立开关，分别控制进展标记和最终总结标记/定位，设置会在本地持久保存。
-- AI 执行完成后自动定位到最终总结开头；如果用户已暂停自动滚动，则保留当前阅读位置。
-- 普通 AI 回答保持现有样式，并为所有受支持语言补齐新标签和设置文案。
+- 将连续的批量 Shell 命令合并为一个时间线区块，并默认折叠显示。
+- 对话执行期间正常显示全部过程内容；执行完成后，将结构上可分离的过程内容收进中性样式的折叠区，最终回答仍按普通 Markdown 显示。
+- 在“基础设置 > 行为”中新增两个默认开启的独立开关，分别控制完成后的默认折叠状态和自动跳转到发起本轮对话的用户提问，设置会在本地持久保存。
+- 后续轮次开始时保留每个已完成轮次的手动折叠状态；发送下一条消息时正常恢复跟随滚动。
+- 为所有受支持语言补齐过程标题和设置文案，不对进展、问题、解决方案做语义分类，也不突出显示最终回答。
 - 将本 fork 构建标记为 `v0.4.7-yx.4`，vendor 元数据保持为 `MossX / yx-yinhe`。
 
 ---

@@ -92,7 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[Attachments Uploaded]",
     "streamingConnected": "{{provider}} connected, understanding your question",
-    "output": { "progress": "Progress", "summary": "Summary" },
+    "executionProcess": { "label": "Execution process", "itemCount": "{{count}} items", "completed": "Completed" },
     "showEarlierMessages": "Show {{count}} earlier messages",
     "totalDuration": "This reply took",
     "tokenUsage": "{{input}} in / {{output}} out",
@@ -217,17 +217,17 @@
         "disabled": "Disabled",
         "hint": "When enabled, AI responses will appear character by character in real-time, instead of waiting for the complete response. May consume more resources."
       },
-      "progressHighlight": {
-        "label": "Highlight Execution Progress",
-        "enabled": "Highlighted",
-        "disabled": "Standard display",
-        "hint": "Marks assistant text around tool calls as execution progress."
+      "processCollapse": {
+        "label": "Collapse Process on Completion",
+        "enabled": "Collapsed by default",
+        "disabled": "Expanded by default",
+        "hint": "Process content stays visible while running, then starts folded after completion. The final answer remains visible."
       },
-      "summaryHighlight": {
-        "label": "Highlight Final Summary",
-        "enabled": "Highlighted",
-        "disabled": "Standard display",
-        "hint": "Highlights the final text after tool calls and navigates to its beginning when execution completes."
+      "completionJumpToUser": {
+        "label": "Jump to Current Question on Completion",
+        "enabled": "Automatic jump",
+        "disabled": "Stay at current position",
+        "hint": "When execution completes, scroll to the user message that started the current turn."
       },
       "autoOpenFile": {
         "label": "Send Opened File Path",

@@ -92,7 +92,7 @@
     "unknownFile": "未知文件",
     "attachmentsUploaded": "[已上传附件]",
     "streamingConnected": "{{provider}} 已成功连接，正在理解问题",
-    "output": { "progress": "进展", "summary": "总结" },
+    "executionProcess": { "label": "执行过程", "itemCount": "{{count}} 项", "completed": "已完成" },
     "showEarlierMessages": "显示之前的 {{count}} 条消息",
     "totalDuration": "本次耗时",
     "tokenUsage": "输入 {{input}} / 输出 {{output}}",
@@ -217,17 +217,17 @@
         "disabled": "已关闭",
         "hint": "开启后，AI 回复将实时逐字显示，而非等待完整响应后一次性展示。可能会消耗更多资源。"
       },
-      "progressHighlight": {
-        "label": "突出显示执行进展",
-        "enabled": "已突出显示",
-        "disabled": "普通显示",
-        "hint": "将工具调用前后的 AI 说明文本标记为执行进展。"
+      "processCollapse": {
+        "label": "完成后默认折叠执行过程",
+        "enabled": "默认折叠",
+        "disabled": "默认展开",
+        "hint": "执行期间正常显示全部内容；完成后默认折叠过程内容，最终回答保持可见。"
       },
-      "summaryHighlight": {
-        "label": "突出显示最终总结",
-        "enabled": "已突出显示",
-        "disabled": "普通显示",
-        "hint": "突出显示工具调用后的最终文本，并在执行完成时定位到总结开头。"
+      "completionJumpToUser": {
+        "label": "完成后跳转到本轮提问",
+        "enabled": "自动跳转",
+        "disabled": "保持当前位置",
+        "hint": "执行完成后，自动滚动到发起本轮对话的用户消息。"
       },
       "autoOpenFile": {
         "label": "发送打开的文件路径",

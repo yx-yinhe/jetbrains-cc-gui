@@ -92,7 +92,7 @@
     "unknownFile": "Arquivo desconhecido",
     "attachmentsUploaded": "[Anexos Enviados]",
     "streamingConnected": "{{provider}} conectado, entendendo sua pergunta",
-    "output": { "progress": "Progresso", "summary": "Resumo" },
+    "executionProcess": { "label": "Processo de execução", "itemCount": "{{count}} itens", "completed": "Concluído" },
     "showEarlierMessages": "Mostrar {{count}} mensagens anteriores",
     "totalDuration": "Esta resposta levou",
     "tokenUsage": "{{input}} entrada / {{output}} saída",
@@ -213,17 +213,17 @@
         "disabled": "Desativado",
         "hint": "Quando ativado, as respostas da IA aparecem caractere por caractere em tempo real, em vez de aguardar a resposta completa. Pode consumir mais recursos."
       },
-      "progressHighlight": {
-        "label": "Destacar progresso da execução",
-        "enabled": "Destacado",
-        "disabled": "Exibição padrão",
-        "hint": "Marca o texto da IA ao redor das chamadas de ferramentas como progresso da execução."
+      "processCollapse": {
+        "label": "Recolher processo ao concluir",
+        "enabled": "Recolhido por padrão",
+        "disabled": "Expandido por padrão",
+        "hint": "O processo permanece visível durante a execução e é recolhido ao concluir. A resposta final continua visível."
       },
-      "summaryHighlight": {
-        "label": "Destacar resumo final",
-        "enabled": "Destacado",
-        "disabled": "Exibição padrão",
-        "hint": "Destaca o texto final após as ferramentas e mostra seu início quando a execução termina."
+      "completionJumpToUser": {
+        "label": "Ir para a pergunta atual ao concluir",
+        "enabled": "Ir automaticamente",
+        "disabled": "Manter posição atual",
+        "hint": "Ao concluir a execução, rola até a mensagem do usuário que iniciou o turno atual."
       },
       "autoOpenFile": {
         "label": "Enviar Caminho do Arquivo Aberto",

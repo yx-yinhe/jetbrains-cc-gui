@@ -9,7 +9,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 describe('BashToolGroupBlock', () => {
-  it('keeps the batch header expandable without rendering a chevron icon', () => {
+  it('starts collapsed and exposes an accessible chevron toggle', () => {
     const { container } = render(
       <BashToolGroupBlock
         items={[
@@ -24,12 +24,16 @@ describe('BashToolGroupBlock', () => {
       />,
     );
 
-    expect(container.querySelector('.bash-group-chevron')).toBeNull();
-    expect(container.querySelector('.bash-group-timeline')).toBeTruthy();
-
-    fireEvent.click(container.querySelector('.bash-group-header') as HTMLElement);
-
+    const header = container.querySelector('.bash-group-header') as HTMLButtonElement;
+    expect(container.querySelector('.bash-group-chevron.codicon-chevron-right')).toBeTruthy();
+    expect(header.getAttribute('aria-expanded')).toBe('false');
     expect(container.querySelector('.bash-group-timeline')).toBeNull();
+
+    fireEvent.click(header);
+
+    expect(container.querySelector('.bash-group-chevron.codicon-chevron-down')).toBeTruthy();
+    expect(header.getAttribute('aria-expanded')).toBe('true');
+    expect(container.querySelector('.bash-group-timeline')).toBeTruthy();
   });
 
   it('renders command and stdout text in dedicated output nodes', () => {
@@ -50,6 +54,7 @@ describe('BashToolGroupBlock', () => {
       />,
     );
 
+    fireEvent.click(container.querySelector('.bash-group-header') as HTMLElement);
     fireEvent.click(container.querySelector('.bash-timeline-content') as HTMLElement);
 
     expect(container.querySelector('.bash-command-block')?.textContent).toBe('npm test');

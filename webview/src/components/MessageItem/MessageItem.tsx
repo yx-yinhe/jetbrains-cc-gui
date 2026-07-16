@@ -16,9 +16,10 @@ import {
   SearchToolGroupBlock,
   AgentGroupBlock,
 } from '../toolBlocks';
-import { ContentBlockRenderer, type AssistantTextPresentation } from './ContentBlockRenderer';
+import { ContentBlockRenderer } from './ContentBlockRenderer';
 import { formatTime } from '../../utils/helpers';
 import { copyToClipboard } from '../../utils/copyUtils';
+import { isToolResultOnlyUserMessage } from '../../utils/turnScope';
 import { READ_TOOL_NAMES, EDIT_TOOL_NAMES, BASH_TOOL_NAMES, SEARCH_TOOL_NAMES, AGENT_TOOL_NAMES, isToolName } from '../../utils/toolConstants';
 
 export interface MessageItemProps {
@@ -39,40 +40,7 @@ export interface MessageItemProps {
   toolResultSignature?: string;
   /** Current active provider id (e.g. 'claude', 'codex'); drives the streaming-connect label. */
   currentProvider?: string;
-  progressHighlightEnabled?: boolean;
-  summaryHighlightEnabled?: boolean;
-}
-
-export function getAssistantTextPresentations(
-  blocks: ClaudeContentBlock[],
-  isStreaming: boolean,
-  progressHighlightEnabled: boolean,
-  summaryHighlightEnabled: boolean,
-): AssistantTextPresentation[] {
-  const presentations = blocks.map((): AssistantTextPresentation => 'default');
-  if (!progressHighlightEnabled && !summaryHighlightEnabled) return presentations;
-
-  let lastToolIndex = -1;
-  let lastTextIndex = -1;
-  for (let index = 0; index < blocks.length; index += 1) {
-    const block = blocks[index];
-    if (block?.type === 'tool_use') lastToolIndex = index;
-    if (block?.type === 'text' && (block.text ?? '').trim()) lastTextIndex = index;
-  }
-  if (lastToolIndex < 0) return presentations;
-
-  const summaryIndex = !isStreaming && lastTextIndex > lastToolIndex ? lastTextIndex : -1;
-  for (let index = 0; index < blocks.length; index += 1) {
-    const block = blocks[index];
-    if (block?.type !== 'text' || !(block.text ?? '').trim()) continue;
-    if (index === summaryIndex) {
-      if (summaryHighlightEnabled) presentations[index] = 'summary';
-    } else if (progressHighlightEnabled) {
-      presentations[index] = 'progress';
-    }
-  }
-
-  return presentations;
+  processCollapseEnabled?: boolean;
 }
 
 /** Map provider id to a human-readable label used in UI text. */
@@ -352,6 +320,27 @@ export function groupBlocks(blocks: ClaudeContentBlock[]): GroupedBlock[] {
   return groupedBlocks;
 }
 
+export function getCompletionSummaryBlockIndex(blocks: ClaudeContentBlock[]): number {
+  const meaningfulIndexes: number[] = [];
+  for (let index = 0; index < blocks.length; index += 1) {
+    const block = blocks[index];
+    if (block.type === 'text') {
+      if ((block.text ?? '').trim()) meaningfulIndexes.push(index);
+      continue;
+    }
+    if (block.type === 'thinking') {
+      if ((block.thinking ?? block.text ?? '').trim()) meaningfulIndexes.push(index);
+      continue;
+    }
+    meaningfulIndexes.push(index);
+  }
+
+  if (meaningfulIndexes.length < 2) return -1;
+  const lastIndex = meaningfulIndexes[meaningfulIndexes.length - 1];
+  const lastBlock = blocks[lastIndex];
+  return lastBlock.type === 'text' && (lastBlock.text ?? '').trim() ? lastIndex : -1;
+}
+
 export const MessageItem = memo(function MessageItem({
   message,
   messageIndex,
@@ -369,11 +358,13 @@ export const MessageItem = memo(function MessageItem({
   onNavigateToDependencySettings,
   toolResultSignature: _toolResultSignature,
   currentProvider,
-  progressHighlightEnabled = true,
-  summaryHighlightEnabled = true,
+  processCollapseEnabled = true,
 }: MessageItemProps): React.ReactElement {
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
   const [showStreamingConnectHint, setShowStreamingConnectHint] = useState(false);
+  // Capture the default when this turn mounts. Later turns and setting changes
+  // must not rewrite a user's fold choice for an already rendered turn.
+  const [processExpanded, setProcessExpanded] = useState(() => !processCollapseEnabled);
 
   // Track timeout to properly cleanup on unmount
   const copyTimeoutRef = useRef<number | null>(null);
@@ -500,25 +491,30 @@ export const MessageItem = memo(function MessageItem({
   }, [blocks, isMessageStreaming, manuallyExpandedThinking]);
 
   const groupedBlocks = useMemo(() => groupBlocks(blocks), [blocks]);
-  const textPresentations = useMemo(
-    () => message.type === 'assistant'
-      ? getAssistantTextPresentations(
-          blocks,
-          isMessageStreaming,
-          progressHighlightEnabled,
-          summaryHighlightEnabled,
-        )
-      : [],
-    [blocks, isMessageStreaming, message.type, progressHighlightEnabled, summaryHighlightEnabled],
+  const completionSummaryBlockIndex = useMemo(
+    () => getCompletionSummaryBlockIndex(blocks),
+    [blocks],
   );
+  const completionSummaryGroupIndex = useMemo(
+    () => groupedBlocks.findIndex((grouped) => (
+      grouped.type === 'single' && grouped.originalIndex === completionSummaryBlockIndex
+    )),
+    [completionSummaryBlockIndex, groupedBlocks],
+  );
+  const hasCollapsibleProcess =
+    message.type === 'assistant'
+    && !isMessageStreaming
+    && completionSummaryGroupIndex > 0;
+  const shouldCollapseProcess = hasCollapsibleProcess && !processExpanded;
+  const isConversationUserMessage = message.type === 'user' && !isToolResultOnlyUserMessage(message);
 
   // Register user message DOM node for anchor navigation
   // Must be called before any early returns to satisfy React hooks rules
   const anchorRefCallback = useCallback((node: HTMLDivElement | null) => {
-    if (message.type === 'user' && onNodeRef) {
+    if (isConversationUserMessage && onNodeRef) {
       onNodeRef(messageKey, node);
     }
-  }, [message.type, messageKey, onNodeRef]);
+  }, [isConversationUserMessage, messageKey, onNodeRef]);
 
   const isProviderNotConfigured = message.type === 'error' && isProviderNotConfiguredError(getMessageText(message));
   const errorDiagnosticPattern = useMemo(
@@ -562,7 +558,7 @@ export const MessageItem = memo(function MessageItem({
       );
     }
 
-    return groupedBlocks.map((grouped) => {
+    const renderGroupedBlock = (grouped: GroupedBlock) => {
       if (grouped.type === 'read_group') {
         const readItems = grouped.blocks.map((b) => {
           const block = b as { type: 'tool_use'; id?: string; name?: string; input?: Record<string, unknown> };
@@ -723,11 +719,54 @@ export const MessageItem = memo(function MessageItem({
             t={t}
             onToggleThinking={() => toggleThinking(blockIndex)}
             findToolResult={findToolResult}
-            textPresentation={textPresentations[blockIndex]}
           />
         </div>
       );
-    });
+    };
+
+    if (hasCollapsibleProcess) {
+      const processGroups = groupedBlocks.slice(0, completionSummaryGroupIndex);
+      const summaryGroup = groupedBlocks[completionSummaryGroupIndex];
+      const trailingGroups = groupedBlocks.slice(completionSummaryGroupIndex + 1);
+      return (
+        <>
+          <div className={`execution-process${shouldCollapseProcess ? ' is-collapsed' : ' is-expanded'}`}>
+            <button
+              type="button"
+              className="execution-process-toggle"
+              aria-expanded={!shouldCollapseProcess}
+              onClick={() => setProcessExpanded((previous) => !previous)}
+            >
+              <span
+                className={`codicon ${shouldCollapseProcess ? 'codicon-chevron-right' : 'codicon-chevron-down'}`}
+                aria-hidden="true"
+              />
+              <span>{t('chat.executionProcess.label')}</span>
+              <span className="execution-process-meta">
+                {t('chat.executionProcess.itemCount', { count: processGroups.length })}
+                <span aria-hidden="true"> · </span>
+                {t('chat.executionProcess.completed')}
+                {typeof message.durationMs === 'number' && (
+                  <>
+                    <span aria-hidden="true"> · </span>
+                    {formatDurationMs(message.durationMs)}
+                  </>
+                )}
+              </span>
+            </button>
+            {!shouldCollapseProcess && (
+              <div className="execution-process-content">
+                {processGroups.map(renderGroupedBlock)}
+              </div>
+            )}
+          </div>
+          {renderGroupedBlock(summaryGroup)}
+          {trailingGroups.map(renderGroupedBlock)}
+        </>
+      );
+    }
+
+    return groupedBlocks.map(renderGroupedBlock);
   };
 
   if (isEmptyStreamingPlaceholder && !showStreamingConnectHint) {
@@ -738,7 +777,8 @@ export const MessageItem = memo(function MessageItem({
     <div
       className={`message ${message.type}${isLast ? ' is-last-message' : ''}${isProviderNotConfigured ? ' provider-not-configured' : ''}`}
       ref={anchorRefCallback}
-      data-message-anchor-id={message.type === 'user' ? messageKey : undefined}
+      data-message-anchor-id={isConversationUserMessage ? messageKey : undefined}
+      data-conversation-user-message={isConversationUserMessage ? 'true' : undefined}
     >
       {/* Timestamp and copy button for user messages */}
       {message.type === 'user' && message.timestamp && (

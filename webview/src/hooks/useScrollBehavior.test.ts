@@ -7,6 +7,7 @@ interface HookProps {
   messages: ClaudeMessage[];
   loading: boolean;
   streamingActive: boolean;
+  completionJumpToUserEnabled?: boolean;
 }
 
 const INITIAL_PROPS: HookProps = {
@@ -190,13 +191,16 @@ describe('useScrollBehavior', () => {
     expect(endRectSpy).toHaveBeenCalled();
   });
 
-  it('moves to the latest summary start when streaming completes', () => {
+  it('moves to the latest user question when streaming completes, even after a manual pause', () => {
     const { container } = createScrollableContainer();
-    const summary = document.createElement('section');
-    summary.dataset.assistantSummary = 'true';
+    const earlierUser = document.createElement('section');
+    earlierUser.dataset.conversationUserMessage = 'true';
+    earlierUser.scrollIntoView = vi.fn();
+    const currentUser = document.createElement('section');
+    currentUser.dataset.conversationUserMessage = 'true';
     const scrollIntoView = vi.fn();
-    summary.scrollIntoView = scrollIntoView;
-    container.appendChild(summary);
+    currentUser.scrollIntoView = scrollIntoView;
+    container.append(earlierUser, currentUser);
 
     const { result, rerender } = renderHook((props: HookProps) => useScrollBehavior(props), {
       initialProps: { ...INITIAL_PROPS, streamingActive: true },
@@ -206,11 +210,44 @@ describe('useScrollBehavior', () => {
       result.current.messagesContainerRef.current = container;
     });
     rerender({ ...INITIAL_PROPS, currentView: 'chat', streamingActive: true });
-    act(() => vi.runAllTimers());
+    act(() => {
+      vi.runAllTimers();
+      container.dispatchEvent(new WheelEvent('wheel', { deltaY: -20 }));
+    });
 
     rerender({ ...INITIAL_PROPS, currentView: 'chat', streamingActive: false });
 
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start', behavior: 'auto' });
+    expect(earlierUser.scrollIntoView).not.toHaveBeenCalled();
     expect(result.current.isUserAtBottomRef.current).toBe(false);
+    expect(result.current.userPausedRef.current).toBe(true);
+    expect(container.classList.contains('scroll-anchor-enabled')).toBe(true);
+  });
+
+  it('keeps the current position when completion jumping is disabled', () => {
+    const { container } = createScrollableContainer();
+    const currentUser = document.createElement('section');
+    currentUser.dataset.conversationUserMessage = 'true';
+    currentUser.scrollIntoView = vi.fn();
+    container.appendChild(currentUser);
+
+    const initialProps = {
+      ...INITIAL_PROPS,
+      streamingActive: true,
+      completionJumpToUserEnabled: false,
+    };
+    const { result, rerender } = renderHook((props: HookProps) => useScrollBehavior(props), {
+      initialProps,
+    });
+
+    act(() => {
+      result.current.messagesContainerRef.current = container;
+    });
+    rerender({ ...initialProps, currentView: 'chat' });
+    act(() => vi.runAllTimers());
+
+    rerender({ ...initialProps, currentView: 'chat', streamingActive: false });
+
+    expect(currentUser.scrollIntoView).not.toHaveBeenCalled();
   });
 });

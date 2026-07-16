@@ -92,7 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[अटैचमेंट अपलोड हो गए]",
     "streamingConnected": "{{provider}} कनेक्ट हो गया, आपके प्रश्न को समझ रहा है",
-    "output": { "progress": "प्रगति", "summary": "सारांश" },
+    "executionProcess": { "label": "निष्पादन प्रक्रिया", "itemCount": "{{count}} आइटम", "completed": "पूर्ण" },
     "showEarlierMessages": "{{count}} पुराने संदेश दिखाएं",
     "totalDuration": "इस जवाब में लगा समय",
     "tokenUsage": "{{input}} इन / {{output}} आउट",
@@ -213,17 +213,17 @@
         "disabled": "Disabled",
         "hint": "When enabled, AI responses will appear character by character in real-time, instead of waiting for the complete response. May consume more resources."
       },
-      "progressHighlight": {
-        "label": "निष्पादन प्रगति हाइलाइट करें",
-        "enabled": "हाइलाइट किया गया",
-        "disabled": "सामान्य प्रदर्शन",
-        "hint": "टूल कॉल के आसपास AI टेक्स्ट को निष्पादन प्रगति के रूप में चिह्नित करता है।"
+      "processCollapse": {
+        "label": "पूर्ण होने पर निष्पादन प्रक्रिया समेटें",
+        "enabled": "डिफ़ॉल्ट रूप से समेटा हुआ",
+        "disabled": "डिफ़ॉल्ट रूप से विस्तृत",
+        "hint": "निष्पादन के दौरान प्रक्रिया दिखाई देती है और पूर्ण होने पर सिमट जाती है। अंतिम उत्तर दिखाई देता रहता है।"
       },
-      "summaryHighlight": {
-        "label": "अंतिम सारांश हाइलाइट करें",
-        "enabled": "हाइलाइट किया गया",
-        "disabled": "सामान्य प्रदर्शन",
-        "hint": "टूल कॉल के बाद अंतिम टेक्स्ट को हाइलाइट करता है और पूरा होने पर उसके आरंभ पर ले जाता है।"
+      "completionJumpToUser": {
+        "label": "पूर्ण होने पर वर्तमान प्रश्न पर जाएँ",
+        "enabled": "स्वचालित रूप से जाएँ",
+        "disabled": "वर्तमान स्थान बनाए रखें",
+        "hint": "निष्पादन पूर्ण होने पर वर्तमान चरण शुरू करने वाले उपयोगकर्ता संदेश पर जाएँ।"
       },
       "autoOpenFile": {
         "label": "खुली फ़ाइल पथ भेजें",

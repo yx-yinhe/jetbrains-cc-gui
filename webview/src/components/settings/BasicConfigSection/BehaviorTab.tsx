@@ -81,10 +81,10 @@ export interface BehaviorTabProps {
   onStreamingEnabledChange?: (enabled: boolean) => void;
   autoOpenFileEnabled?: boolean;
   onAutoOpenFileEnabledChange?: (enabled: boolean) => void;
-  progressHighlightEnabled?: boolean;
-  onProgressHighlightEnabledChange?: (enabled: boolean) => void;
-  summaryHighlightEnabled?: boolean;
-  onSummaryHighlightEnabledChange?: (enabled: boolean) => void;
+  processCollapseEnabled?: boolean;
+  onProcessCollapseEnabledChange?: (enabled: boolean) => void;
+  completionJumpToUserEnabled?: boolean;
+  onCompletionJumpToUserEnabledChange?: (enabled: boolean) => void;
   diffExpandedByDefault?: boolean;
   onDiffExpandedByDefaultChange?: (enabled: boolean) => void;
   commitGenerationEnabled?: boolean;
@@ -127,10 +127,10 @@ const BehaviorTab = ({
   onStreamingEnabledChange = () => {},
   autoOpenFileEnabled = true,
   onAutoOpenFileEnabledChange = () => {},
-  progressHighlightEnabled = true,
-  onProgressHighlightEnabledChange = () => {},
-  summaryHighlightEnabled = true,
-  onSummaryHighlightEnabledChange = () => {},
+  processCollapseEnabled = true,
+  onProcessCollapseEnabledChange = () => {},
+  completionJumpToUserEnabled = true,
+  onCompletionJumpToUserEnabledChange = () => {},
   diffExpandedByDefault = false,
   onDiffExpandedByDefaultChange = () => {},
   commitGenerationEnabled = true,
@@ -240,51 +240,51 @@ const BehaviorTab = ({
 
       <div className={styles.streamingSection}>
         <div className={styles.fieldHeader}>
-          <span className="codicon codicon-pulse" />
-          <span className={styles.fieldLabel}>{t('settings.basic.progressHighlight.label')}</span>
+          <span className="codicon codicon-fold" />
+          <span className={styles.fieldLabel}>{t('settings.basic.processCollapse.label')}</span>
         </div>
         <label className={styles.toggleWrapper}>
           <input
             type="checkbox"
             className={styles.toggleInput}
-            checked={progressHighlightEnabled}
-            onChange={(e) => onProgressHighlightEnabledChange(e.target.checked)}
+            checked={processCollapseEnabled}
+            onChange={(e) => onProcessCollapseEnabledChange(e.target.checked)}
           />
           <span className={styles.toggleSlider} />
           <span className={styles.toggleLabel}>
-            {progressHighlightEnabled
-              ? t('settings.basic.progressHighlight.enabled')
-              : t('settings.basic.progressHighlight.disabled')}
+            {processCollapseEnabled
+              ? t('settings.basic.processCollapse.enabled')
+              : t('settings.basic.processCollapse.disabled')}
           </span>
         </label>
         <small className={styles.formHint}>
           <span className="codicon codicon-info" />
-          <span>{t('settings.basic.progressHighlight.hint')}</span>
+          <span>{t('settings.basic.processCollapse.hint')}</span>
         </small>
       </div>
 
       <div className={styles.streamingSection}>
         <div className={styles.fieldHeader}>
-          <span className="codicon codicon-check-all" />
-          <span className={styles.fieldLabel}>{t('settings.basic.summaryHighlight.label')}</span>
+          <span className="codicon codicon-arrow-up" />
+          <span className={styles.fieldLabel}>{t('settings.basic.completionJumpToUser.label')}</span>
         </div>
         <label className={styles.toggleWrapper}>
           <input
             type="checkbox"
             className={styles.toggleInput}
-            checked={summaryHighlightEnabled}
-            onChange={(e) => onSummaryHighlightEnabledChange(e.target.checked)}
+            checked={completionJumpToUserEnabled}
+            onChange={(e) => onCompletionJumpToUserEnabledChange(e.target.checked)}
           />
           <span className={styles.toggleSlider} />
           <span className={styles.toggleLabel}>
-            {summaryHighlightEnabled
-              ? t('settings.basic.summaryHighlight.enabled')
-              : t('settings.basic.summaryHighlight.disabled')}
+            {completionJumpToUserEnabled
+              ? t('settings.basic.completionJumpToUser.enabled')
+              : t('settings.basic.completionJumpToUser.disabled')}
           </span>
         </label>
         <small className={styles.formHint}>
           <span className="codicon codicon-info" />
-          <span>{t('settings.basic.summaryHighlight.hint')}</span>
+          <span>{t('settings.basic.completionJumpToUser.hint')}</span>
         </small>
       </div>
 

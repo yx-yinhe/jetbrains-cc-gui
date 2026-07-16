@@ -18,7 +18,7 @@ import {
   useMessageSender,
   useModelProviderState,
   useChatComputations,
-  useAssistantDisplaySettings,
+  useCompletionBehaviorSettings,
 } from './hooks';
 import {
   NEW_SESSION_COMMANDS,
@@ -130,11 +130,11 @@ const App = () => {
   useContextActions();
 
   const {
-    progressHighlightEnabled,
-    summaryHighlightEnabled,
-    setProgressHighlightEnabled,
-    setSummaryHighlightEnabled,
-  } = useAssistantDisplaySettings();
+    processCollapseEnabled,
+    completionJumpToUserEnabled,
+    setProcessCollapseEnabled,
+    setCompletionJumpToUserEnabled,
+  } = useCompletionBehaviorSettings();
 
   // Apply diff theme on app startup so diff styles work before opening Settings.
   useEffect(() => {
@@ -151,7 +151,7 @@ const App = () => {
     messages,
     loading,
     streamingActive,
-    summaryNavigationEnabled: summaryHighlightEnabled,
+    completionJumpToUserEnabled,
   });
 
   // ── Streaming messages ──
@@ -487,10 +487,10 @@ const App = () => {
           onSendShortcutChange={handleSendShortcutChange}
           autoOpenFileEnabled={autoOpenFileEnabled}
           onAutoOpenFileEnabledChange={handleAutoOpenFileEnabledChange}
-          progressHighlightEnabled={progressHighlightEnabled}
-          onProgressHighlightEnabledChange={setProgressHighlightEnabled}
-          summaryHighlightEnabled={summaryHighlightEnabled}
-          onSummaryHighlightEnabledChange={setSummaryHighlightEnabled}
+          processCollapseEnabled={processCollapseEnabled}
+          onProcessCollapseEnabledChange={setProcessCollapseEnabled}
+          completionJumpToUserEnabled={completionJumpToUserEnabled}
+          onCompletionJumpToUserEnabledChange={setCompletionJumpToUserEnabled}
           permissionDialogTimeoutSeconds={permissionDialogTimeoutSeconds}
           onPermissionDialogTimeoutChange={setPermissionDialogTimeoutSeconds}
         />
@@ -540,8 +540,7 @@ const App = () => {
           streamingEnabledSetting={streamingEnabledSetting}
           sendShortcut={sendShortcut}
           autoOpenFileEnabled={autoOpenFileEnabled}
-          progressHighlightEnabled={progressHighlightEnabled}
-          summaryHighlightEnabled={summaryHighlightEnabled}
+          processCollapseEnabled={processCollapseEnabled}
           longContextEnabled={longContextEnabled}
           usagePercentage={usagePercentage}
           usageUsedTokens={usageUsedTokens}

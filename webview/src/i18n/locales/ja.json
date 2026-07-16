@@ -92,7 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[添付ファイルがアップロードされました]",
     "streamingConnected": "{{provider}}に接続しました、質問を理解しています",
-    "output": { "progress": "進捗", "summary": "まとめ" },
+    "executionProcess": { "label": "実行プロセス", "itemCount": "{{count}} 件", "completed": "完了" },
     "showEarlierMessages": "以前の{{count}}件のメッセージを表示",
     "totalDuration": "今回の応答時間",
     "tokenUsage": "入力 {{input}} / 出力 {{output}}",
@@ -213,17 +213,17 @@
         "disabled": "Disabled",
         "hint": "When enabled, AI responses will appear character by character in real-time, instead of waiting for the complete response. May consume more resources."
       },
-      "progressHighlight": {
-        "label": "実行進捗を強調表示",
-        "enabled": "強調表示",
-        "disabled": "通常表示",
-        "hint": "ツール呼び出し前後の AI テキストを実行進捗として表示します。"
+      "processCollapse": {
+        "label": "完了後に実行プロセスを折りたたむ",
+        "enabled": "デフォルトで折りたたむ",
+        "disabled": "デフォルトで展開",
+        "hint": "実行中はすべて表示し、完了後はプロセスを折りたたみます。最終回答は表示されたままです。"
       },
-      "summaryHighlight": {
-        "label": "最終まとめを強調表示",
-        "enabled": "強調表示",
-        "disabled": "通常表示",
-        "hint": "ツール呼び出し後の最終テキストを強調し、実行完了時に先頭へ移動します。"
+      "completionJumpToUser": {
+        "label": "完了後に今回の質問へ移動",
+        "enabled": "自動移動",
+        "disabled": "現在位置を維持",
+        "hint": "実行完了時に、今回のターンを開始したユーザーメッセージへ移動します。"
       },
       "autoOpenFile": {
         "label": "開いたファイルパスを送信",

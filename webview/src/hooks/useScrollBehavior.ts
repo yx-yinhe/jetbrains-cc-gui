@@ -12,7 +12,7 @@ export interface UseScrollBehaviorOptions {
   expandedThinking?: Record<string, boolean>;
   loading: boolean;
   streamingActive: boolean;
-  summaryNavigationEnabled?: boolean;
+  completionJumpToUserEnabled?: boolean;
 }
 
 interface UseScrollBehaviorReturn {
@@ -39,7 +39,7 @@ export function useScrollBehavior({
   expandedThinking,
   loading,
   streamingActive,
-  summaryNavigationEnabled = true,
+  completionJumpToUserEnabled = true,
 }: UseScrollBehaviorOptions): UseScrollBehaviorReturn {
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -120,16 +120,17 @@ export function useScrollBehavior({
     });
   }, []);
 
-  const scrollToLatestSummaryStart = useCallback((): boolean => {
+  const scrollToLatestConversationUser = useCallback((): boolean => {
     const container = messagesContainerRef.current;
     if (!container) return false;
-    const summaries = container.querySelectorAll<HTMLElement>('[data-assistant-summary="true"]');
-    const target = summaries.item(summaries.length - 1);
+    const userMessages = container.querySelectorAll<HTMLElement>('[data-conversation-user-message="true"]');
+    const target = userMessages.item(userMessages.length - 1);
     if (!target) return false;
 
     isAutoScrollingRef.current = true;
     isUserAtBottomRef.current = false;
-    container.classList.add(SCROLL_ANCHOR_ENABLED_CLASS);
+    userPausedRef.current = true;
+    syncScrollAnchoring();
 
     const containerRect = container.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
@@ -144,7 +145,7 @@ export function useScrollBehavior({
       isAutoScrollingRef.current = false;
     });
     return true;
-  }, []);
+  }, [syncScrollAnchoring]);
 
   // Warm up layout after window regains focus (macOS JCEF drops GPU layers
   // when the window is in the background, causing a scroll stutter on return)
@@ -275,13 +276,14 @@ export function useScrollBehavior({
     const streamJustEnded = previousStreamingActiveRef.current && !streamingActive;
     previousStreamingActiveRef.current = streamingActive;
     if (currentView !== 'chat') return;
+
+    if (streamJustEnded && completionJumpToUserEnabled && scrollToLatestConversationUser()) {
+      return;
+    }
+
     syncScrollAnchoring();
     if (userPausedRef.current) return;
     if (!isUserAtBottomRef.current) return;
-
-    if (streamJustEnded && summaryNavigationEnabled && scrollToLatestSummaryStart()) {
-      return;
-    }
 
     if (streamingActive) {
       if (scrollDebounceRef.current !== null) {
@@ -302,9 +304,9 @@ export function useScrollBehavior({
     expandedThinking,
     loading,
     streamingActive,
-    summaryNavigationEnabled,
+    completionJumpToUserEnabled,
     scrollToBottom,
-    scrollToLatestSummaryStart,
+    scrollToLatestConversationUser,
     syncScrollAnchoring,
   ]);
 
