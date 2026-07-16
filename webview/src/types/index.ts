@@ -1,5 +1,7 @@
 export type ClaudeRole = 'user' | 'assistant' | 'error' | 'task_notification' | 'notification' | 'compact_notification' | string;
 
+export type TurnTerminationReason = 'cancelled' | 'permission_denied' | 'error' | 'terminated';
+
 export type ToolInput = Record<string, unknown>;
 
 export interface CompactNotificationItem {
@@ -76,6 +78,8 @@ export interface ClaudeMessage {
    * be merged. Undefined for history messages loaded from JSONL files.
    */
   __turnId?: number;
+  /** Runtime display reason when a turn ended without a normal final answer. */
+  turnTerminationReason?: TurnTerminationReason;
   [key: string]: unknown;
 }
 

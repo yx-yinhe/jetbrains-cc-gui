@@ -396,6 +396,39 @@ describe('mergeConsecutiveAssistantMessages', () => {
     // (user tool_result is skipped, but assistant blocks stay separated)
     expect(result.filter((m) => m.type === 'assistant')).toHaveLength(2);
   });
+
+  it('joins tool fragments with the final answer once the turn completes', () => {
+    const messages: ClaudeMessage[] = [
+      makeMsg('assistant', '', {
+        raw: { content: [{ type: 'tool_use', id: 'tool-1', name: 'exec_command' }] } as any,
+      }),
+      makeMsg('user', '[tool_result]', {
+        raw: { content: [{ type: 'tool_result', tool_use_id: 'tool-1', content: 'ok' }] } as any,
+      }),
+      makeMsg('assistant', 'final answer', {
+        __turnId: 7,
+        durationMs: 1200,
+        turnTerminationReason: 'cancelled',
+        raw: {
+          content: [{ type: 'text', text: 'final answer' }],
+          turnUsage: { input_tokens: 10, output_tokens: 2 },
+        } as any,
+      }),
+    ];
+
+    const result = mergeConsecutiveAssistantMessages(
+      messages,
+      normalizeBlocks,
+      undefined,
+      { mergeCompletedTurnFragments: true },
+    );
+
+    expect(result).toHaveLength(1);
+    expect((result[0].raw as any).content.map((block: any) => block.type)).toEqual(['tool_use', 'text']);
+    expect((result[0].raw as any).turnUsage).toEqual({ input_tokens: 10, output_tokens: 2 });
+    expect(result[0].durationMs).toBe(1200);
+    expect(result[0].turnTerminationReason).toBe('cancelled');
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -92,7 +92,7 @@
     "unknownFile": "알 수 없는 파일",
     "attachmentsUploaded": "[첨부파일 업로드됨]",
     "streamingConnected": "{{provider}} 연결됨, 질문을 이해하는 중",
-    "executionProcess": { "label": "실행 과정", "itemCount": "{{count}}개 항목", "completed": "완료" },
+    "executionProcess": { "label": "실행 과정", "readFile": "파일을 읽음", "readFiles": "여러 파일을 읽음", "editedFile": "파일을 편집함", "editedFiles": "여러 파일을 편집함", "singleCommand": "명령을 실행함", "multipleCommands": "여러 명령을 실행함", "singleSearch": "검색함", "multipleSearches": "여러 번 검색함", "singleTool": "도구를 사용함", "multipleTools": "여러 도구를 사용함", "summarySeparator": ", ", "summaryPairSeparator": " 및 ", "summaryFinalSeparator": " 및 ", "itemCount": "{{count}}개 항목", "completed": "완료", "cancelled": "수동으로 취소됨", "permission_denied": "권한 거부됨", "error": "실행 오류", "terminated": "예기치 않게 종료됨" },
     "showEarlierMessages": "이전 메시지 {{count}}개 보기",
     "totalDuration": "이번 응답 소요 시간",
     "tokenUsage": "입력 {{input}} / 출력 {{output}}",

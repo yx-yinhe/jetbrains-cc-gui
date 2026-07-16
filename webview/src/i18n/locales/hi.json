@@ -92,7 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[अटैचमेंट अपलोड हो गए]",
     "streamingConnected": "{{provider}} कनेक्ट हो गया, आपके प्रश्न को समझ रहा है",
-    "executionProcess": { "label": "निष्पादन प्रक्रिया", "itemCount": "{{count}} आइटम", "completed": "पूर्ण" },
+    "executionProcess": { "label": "निष्पादन प्रक्रिया", "readFile": "फ़ाइल पढ़ी", "readFiles": "कई फ़ाइलें पढ़ीं", "editedFile": "फ़ाइल संपादित की", "editedFiles": "कई फ़ाइलें संपादित कीं", "singleCommand": "कमांड चलाया", "multipleCommands": "कई कमांड चलाए", "singleSearch": "खोज की", "multipleSearches": "कई खोजें कीं", "singleTool": "टूल का उपयोग किया", "multipleTools": "कई टूल का उपयोग किया", "summarySeparator": ", ", "summaryPairSeparator": " और ", "summaryFinalSeparator": " और ", "itemCount": "{{count}} आइटम", "completed": "पूर्ण", "cancelled": "मैन्युअल रूप से रद्द", "permission_denied": "अनुमति अस्वीकृत", "error": "निष्पादन विफल", "terminated": "अप्रत्याशित रूप से समाप्त" },
     "showEarlierMessages": "{{count}} पुराने संदेश दिखाएं",
     "totalDuration": "इस जवाब में लगा समय",
     "tokenUsage": "{{input}} इन / {{output}} आउट",

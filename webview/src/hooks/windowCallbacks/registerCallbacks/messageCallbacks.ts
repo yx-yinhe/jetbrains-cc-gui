@@ -110,7 +110,21 @@ export function registerMessageCallbacks(
       resultList,
       options.currentProviderRef.current,
     );
-    return ensureStreamingAssistantPreserved(prevList, withoutDuplicateToolTail);
+    const finalized = ensureStreamingAssistantPreserved(prevList, withoutDuplicateToolTail);
+    const terminationReason = window.__pendingTurnTerminationReason;
+    if (!terminationReason) return finalized;
+
+    const assistantIndex = findLastAssistantIndex(finalized);
+    if (assistantIndex < 0 || finalized[assistantIndex].turnTerminationReason === terminationReason) {
+      return finalized;
+    }
+    const withTerminationReason = [...finalized];
+    withTerminationReason[assistantIndex] = {
+      ...withTerminationReason[assistantIndex],
+      isStreaming: false,
+      turnTerminationReason: terminationReason,
+    };
+    return withTerminationReason;
   };
 
   // During streaming, buffer updateMessages calls and process only the latest
@@ -599,6 +613,7 @@ export function registerMessageCallbacks(
       window.__pendingUpdateSequence = null;
     }
     window.__deniedToolIds?.clear();
+    window.__pendingTurnTerminationReason = undefined;
     resetTransientUiState();
     closeContextUsageDialog();
     setMessages([]);

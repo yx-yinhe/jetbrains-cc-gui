@@ -338,7 +338,7 @@ const App = () => {
   const {
     getMessageText, getContentBlocks,
     mergedMessages, sentAttachmentsRef,
-  } = useMessageProcessing({ messages, currentSessionId, t });
+  } = useMessageProcessing({ messages, currentSessionId, streamingActive, t });
 
   // ── Message sender ──
   // Wrap handleProviderSelect to also clear messages and input (like creating a new session)

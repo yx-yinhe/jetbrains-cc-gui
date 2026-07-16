@@ -20,7 +20,17 @@ import { ContentBlockRenderer } from './ContentBlockRenderer';
 import { formatTime } from '../../utils/helpers';
 import { copyToClipboard } from '../../utils/copyUtils';
 import { isToolResultOnlyUserMessage } from '../../utils/turnScope';
-import { READ_TOOL_NAMES, EDIT_TOOL_NAMES, BASH_TOOL_NAMES, SEARCH_TOOL_NAMES, AGENT_TOOL_NAMES, isToolName } from '../../utils/toolConstants';
+import {
+  READ_TOOL_NAMES,
+  EDIT_TOOL_NAMES,
+  BASH_TOOL_NAMES,
+  SEARCH_TOOL_NAMES,
+  AGENT_TOOL_NAMES,
+  FILE_MODIFY_TOOL_NAMES,
+  isToolName,
+  normalizeToolName,
+} from '../../utils/toolConstants';
+import { extractPathsFromPatch } from '../../utils/toolPresentation';
 
 export interface MessageItemProps {
   message: ClaudeMessage;
@@ -56,6 +66,18 @@ type GroupedBlock =
   | { type: 'bash_group'; blocks: ClaudeContentBlock[]; startIndex: number }
   | { type: 'search_group'; blocks: ClaudeContentBlock[]; startIndex: number }
   | { type: 'agent_group'; agentBlock: ClaudeContentBlock; followingBlocks: ClaudeContentBlock[]; startIndex: number };
+
+type ProcessRenderUnit =
+  | { type: 'group'; group: GroupedBlock }
+  | { type: 'tool_run'; groups: GroupedBlock[]; startIndex: number };
+
+interface ToolRunSummary {
+  readCount: number;
+  editedFileCount: number;
+  commandCount: number;
+  searchCount: number;
+  otherToolCount: number;
+}
 
 /** Shared copy icon SVG used by both user and assistant message copy buttons */
 const CopyIcon = () => (
@@ -174,6 +196,7 @@ export function groupBlocks(blocks: ClaudeContentBlock[]): GroupedBlock[] {
   let editGroupStartIndex = -1;
   let currentBashGroup: ClaudeContentBlock[] = [];
   let bashGroupStartIndex = -1;
+  let bashGroupSourceIndex: number | undefined;
   let currentSearchGroup: ClaudeContentBlock[] = [];
   let searchGroupStartIndex = -1;
   let currentAgentBlock: ClaudeContentBlock | null = null;
@@ -213,6 +236,7 @@ export function groupBlocks(blocks: ClaudeContentBlock[]): GroupedBlock[] {
       });
       currentBashGroup = [];
       bashGroupStartIndex = -1;
+      bashGroupSourceIndex = undefined;
     }
   };
 
@@ -290,8 +314,15 @@ export function groupBlocks(blocks: ClaudeContentBlock[]): GroupedBlock[] {
       flushReadGroup();
       flushEditGroup();
       flushSearchGroup();
+      const sourceIndex = block.type === 'tool_use' && typeof block.input?.__sourceMessageIndex === 'number'
+        ? block.input.__sourceMessageIndex
+        : undefined;
+      if (currentBashGroup.length > 0 && sourceIndex !== bashGroupSourceIndex) {
+        flushBashGroup();
+      }
       if (currentBashGroup.length === 0) {
         bashGroupStartIndex = idx;
+        bashGroupSourceIndex = sourceIndex;
       }
       currentBashGroup.push(block);
     } else if (isToolBlockOfType(block, SEARCH_TOOL_NAMES)) {
@@ -318,6 +349,114 @@ export function groupBlocks(blocks: ClaudeContentBlock[]): GroupedBlock[] {
   flushSearchGroup();
 
   return groupedBlocks;
+}
+
+function getGroupedBlockStartIndex(group: GroupedBlock): number {
+  return group.type === 'single' ? group.originalIndex : group.startIndex;
+}
+
+function getToolBlocks(group: GroupedBlock): ClaudeContentBlock[] {
+  if (group.type === 'single') return group.block.type === 'tool_use' ? [group.block] : [];
+  if (group.type === 'agent_group') return [group.agentBlock, ...group.followingBlocks];
+  return group.blocks;
+}
+
+function groupConsecutiveToolRuns(groups: GroupedBlock[]): ProcessRenderUnit[] {
+  const units: ProcessRenderUnit[] = [];
+  let toolRun: GroupedBlock[] = [];
+  let toolRunStartIndex = -1;
+
+  const flushToolRun = () => {
+    if (toolRun.length === 0) return;
+    units.push({
+      type: 'tool_run',
+      groups: toolRun,
+      startIndex: toolRunStartIndex,
+    });
+    toolRun = [];
+    toolRunStartIndex = -1;
+  };
+
+  for (const group of groups) {
+    if (getToolBlocks(group).length > 0) {
+      if (toolRun.length === 0) toolRunStartIndex = getGroupedBlockStartIndex(group);
+      toolRun.push(group);
+      continue;
+    }
+    flushToolRun();
+    units.push({ type: 'group', group });
+  }
+  flushToolRun();
+  return units;
+}
+
+function summarizeToolRun(groups: GroupedBlock[]): ToolRunSummary {
+  let readCount = 0;
+  let commandCount = 0;
+  let searchCount = 0;
+  let otherToolCount = 0;
+  let unknownEditTargetCount = 0;
+  const editedPaths = new Set<string>();
+
+  for (const group of groups) {
+    for (const block of getToolBlocks(group)) {
+      if (block.type !== 'tool_use') continue;
+      if (isToolName(block.name, READ_TOOL_NAMES)) {
+        readCount += 1;
+      } else if (isToolName(block.name, BASH_TOOL_NAMES)) {
+        commandCount += 1;
+      } else if (isToolName(block.name, SEARCH_TOOL_NAMES)) {
+        searchCount += 1;
+      } else if (isToolName(block.name, EDIT_TOOL_NAMES)
+          || isToolName(block.name, FILE_MODIFY_TOOL_NAMES)
+          || normalizeToolName(block.name ?? '') === 'apply_patch') {
+        const input = block.input ?? {};
+        const directPath = [
+          input.file_path,
+          input.filePath,
+          input.path,
+          input.target_file,
+          input.targetFile,
+          input.notebook_path,
+        ].find((value): value is string => typeof value === 'string' && value.length > 0);
+        if (directPath) {
+          editedPaths.add(directPath.replace(/\\/g, '/'));
+        } else if (normalizeToolName(block.name ?? '') === 'apply_patch') {
+          const patch = [input.input, input.patch, input.content]
+            .find((value): value is string => typeof value === 'string');
+          const patchPaths = patch ? extractPathsFromPatch(patch) : [];
+          if (patchPaths.length > 0) {
+            patchPaths.forEach((path) => editedPaths.add(path.replace(/\\/g, '/')));
+          } else {
+            unknownEditTargetCount += 1;
+          }
+        } else {
+          unknownEditTargetCount += 1;
+        }
+      } else {
+        otherToolCount += 1;
+      }
+    }
+  }
+
+  return {
+    readCount,
+    editedFileCount: editedPaths.size + unknownEditTargetCount,
+    commandCount,
+    searchCount,
+    otherToolCount,
+  };
+}
+
+function joinToolSummaryParts(
+  parts: string[],
+  separator: string,
+  pairSeparator: string,
+  finalSeparator: string,
+): string {
+  if (parts.length <= 1) return parts[0] ?? '';
+  if (parts.length === 2) return `${parts[0]}${pairSeparator}${parts[1]}`;
+  return `${parts.slice(0, -1).join(separator)}${finalSeparator}${parts[parts.length - 1]}`;
 }
 
 export function getCompletionSummaryBlockIndex(blocks: ClaudeContentBlock[]): number {
@@ -365,6 +504,7 @@ export const MessageItem = memo(function MessageItem({
   // Capture the default when this turn mounts. Later turns and setting changes
   // must not rewrite a user's fold choice for an already rendered turn.
   const [processExpanded, setProcessExpanded] = useState(() => !processCollapseEnabled);
+  const [expandedToolRuns, setExpandedToolRuns] = useState<Record<number, boolean>>({});
 
   // Track timeout to properly cleanup on unmount
   const copyTimeoutRef = useRef<number | null>(null);
@@ -490,7 +630,20 @@ export const MessageItem = memo(function MessageItem({
     }
   }, [blocks, isMessageStreaming, manuallyExpandedThinking]);
 
-  const groupedBlocks = useMemo(() => groupBlocks(blocks), [blocks]);
+  const groupedBlocks = useMemo(() => {
+    const groups = groupBlocks(blocks);
+    if (currentProvider !== 'codex') return groups;
+
+    return groups.flatMap((group): GroupedBlock[] => {
+      if (group.type !== 'bash_group' || group.blocks.length < 2) return [group];
+      return group.blocks.map((block, offset) => ({
+        type: 'bash_group',
+        blocks: [block],
+        startIndex: group.startIndex + offset,
+      }));
+    });
+  }, [blocks, currentProvider]);
+  const tokenInfo = useMemo(() => extractTokenUsage(message.raw), [message.raw]);
   const completionSummaryBlockIndex = useMemo(
     () => getCompletionSummaryBlockIndex(blocks),
     [blocks],
@@ -501,10 +654,18 @@ export const MessageItem = memo(function MessageItem({
     )),
     [completionSummaryBlockIndex, groupedBlocks],
   );
+  const hasProcessSignal = groupedBlocks.some((grouped) => (
+    grouped.type !== 'single'
+    || grouped.block.type === 'thinking'
+    || grouped.block.type === 'tool_use'
+  ));
+  const terminationReason = message.turnTerminationReason
+    ?? (completionSummaryGroupIndex < 0 && hasProcessSignal ? 'terminated' : undefined);
   const hasCollapsibleProcess =
     message.type === 'assistant'
     && !isMessageStreaming
-    && completionSummaryGroupIndex > 0;
+    && groupedBlocks.length > 0
+    && (terminationReason !== undefined || completionSummaryGroupIndex > 0);
   const shouldCollapseProcess = hasCollapsibleProcess && !processExpanded;
   const isConversationUserMessage = message.type === 'user' && !isToolResultOnlyUserMessage(message);
 
@@ -724,10 +885,71 @@ export const MessageItem = memo(function MessageItem({
       );
     };
 
+    const renderProcessGroups = (groups: GroupedBlock[]) => (
+      groupConsecutiveToolRuns(groups).map((unit) => {
+        if (unit.type === 'group') return renderGroupedBlock(unit.group);
+
+        const isExpanded = Boolean(expandedToolRuns[unit.startIndex]);
+        const summary = summarizeToolRun(unit.groups);
+        const summaryParts = [
+          summary.readCount > 0
+            ? t(`chat.executionProcess.${summary.readCount > 1 ? 'readFiles' : 'readFile'}`)
+            : '',
+          summary.editedFileCount > 0
+            ? t(`chat.executionProcess.${summary.editedFileCount > 1 ? 'editedFiles' : 'editedFile'}`)
+            : '',
+          summary.commandCount > 0
+            ? t(`chat.executionProcess.${summary.commandCount > 1 ? 'multipleCommands' : 'singleCommand'}`)
+            : '',
+          summary.searchCount > 0
+            ? t(`chat.executionProcess.${summary.searchCount > 1 ? 'multipleSearches' : 'singleSearch'}`)
+            : '',
+          summary.otherToolCount > 0
+            ? t(`chat.executionProcess.${summary.otherToolCount > 1 ? 'multipleTools' : 'singleTool'}`)
+            : '',
+        ].filter(Boolean);
+        const toolRunLabel = joinToolSummaryParts(
+          summaryParts,
+          t('chat.executionProcess.summarySeparator'),
+          t('chat.executionProcess.summaryPairSeparator'),
+          t('chat.executionProcess.summaryFinalSeparator'),
+        );
+        return (
+          <div className="execution-command-group" key={`tool-run-${messageIndex}-${unit.startIndex}`}>
+            <button
+              type="button"
+              className="execution-process-toggle execution-command-toggle"
+              aria-expanded={isExpanded}
+              onClick={() => setExpandedToolRuns((previous) => ({
+                ...previous,
+                [unit.startIndex]: !previous[unit.startIndex],
+              }))}
+            >
+              <span
+                className={`codicon ${isExpanded ? 'codicon-chevron-down' : 'codicon-chevron-right'}`}
+                aria-hidden="true"
+              />
+              <span>{toolRunLabel}</span>
+            </button>
+            {isExpanded && (
+              <div className="execution-command-content">
+                {unit.groups.map(renderGroupedBlock)}
+              </div>
+            )}
+          </div>
+        );
+      })
+    );
+
     if (hasCollapsibleProcess) {
-      const processGroups = groupedBlocks.slice(0, completionSummaryGroupIndex);
-      const summaryGroup = groupedBlocks[completionSummaryGroupIndex];
-      const trailingGroups = groupedBlocks.slice(completionSummaryGroupIndex + 1);
+      const processGroups = terminationReason
+        ? groupedBlocks
+        : groupedBlocks.slice(0, completionSummaryGroupIndex);
+      const summaryGroup = terminationReason ? undefined : groupedBlocks[completionSummaryGroupIndex];
+      const trailingGroups = terminationReason ? [] : groupedBlocks.slice(completionSummaryGroupIndex + 1);
+      const processLabel = terminationReason
+        ? t(`chat.executionProcess.${terminationReason}`)
+        : t('chat.executionProcess.label');
       return (
         <>
           <div className={`execution-process${shouldCollapseProcess ? ' is-collapsed' : ' is-expanded'}`}>
@@ -741,26 +963,50 @@ export const MessageItem = memo(function MessageItem({
                 className={`codicon ${shouldCollapseProcess ? 'codicon-chevron-right' : 'codicon-chevron-down'}`}
                 aria-hidden="true"
               />
-              <span>{t('chat.executionProcess.label')}</span>
+              <span>{processLabel}</span>
               <span className="execution-process-meta">
+                <span className="execution-process-separator" aria-hidden="true">·</span>
                 {t('chat.executionProcess.itemCount', { count: processGroups.length })}
-                <span aria-hidden="true"> · </span>
-                {t('chat.executionProcess.completed')}
+                {!terminationReason && (
+                  <>
+                    <span className="execution-process-separator" aria-hidden="true">·</span>
+                    {t('chat.executionProcess.completed')}
+                  </>
+                )}
                 {typeof message.durationMs === 'number' && (
                   <>
-                    <span aria-hidden="true"> · </span>
+                    <span className="execution-process-separator" aria-hidden="true">·</span>
                     {formatDurationMs(message.durationMs)}
+                  </>
+                )}
+                {tokenInfo && (
+                  <>
+                    <span className="execution-process-separator" aria-hidden="true">·</span>
+                    <span
+                      className="execution-process-tokens"
+                      title={t('chat.tokenUsageDetail', {
+                        input: formatTokenCount(tokenInfo.nonCacheInputTokens),
+                        cacheWrite: formatTokenCount(tokenInfo.cacheCreationTokens),
+                        cacheRead: formatTokenCount(tokenInfo.cacheReadTokens),
+                        output: formatTokenCount(tokenInfo.outputTokens),
+                      })}
+                    >
+                      {t('chat.tokenUsage', {
+                        input: formatTokenCount(tokenInfo.inputTokens),
+                        output: formatTokenCount(tokenInfo.outputTokens),
+                      })}
+                    </span>
                   </>
                 )}
               </span>
             </button>
             {!shouldCollapseProcess && (
               <div className="execution-process-content">
-                {processGroups.map(renderGroupedBlock)}
+                {renderProcessGroups(processGroups)}
               </div>
             )}
           </div>
-          {renderGroupedBlock(summaryGroup)}
+          {summaryGroup ? renderGroupedBlock(summaryGroup) : null}
           {trailingGroups.map(renderGroupedBlock)}
         </>
       );
@@ -780,24 +1026,6 @@ export const MessageItem = memo(function MessageItem({
       data-message-anchor-id={isConversationUserMessage ? messageKey : undefined}
       data-conversation-user-message={isConversationUserMessage ? 'true' : undefined}
     >
-      {/* Timestamp and copy button for user messages */}
-      {message.type === 'user' && message.timestamp && (
-        <div className="message-header-row">
-          <div className="message-timestamp-header">
-            {formatTime(message.timestamp)}
-          </div>
-          {hasCopyableText && (
-            <CopyButton
-              className="message-copy-btn-inline"
-              isCopied={copiedMessageIndex === messageIndex}
-              onClick={handleCopyMessage}
-              copyLabel={t('markdown.copyMessage')}
-              copySuccessText={t('markdown.copySuccess')}
-            />
-          )}
-        </div>
-      )}
-
       {/* Copy button for assistant messages only */}
       {message.type === 'assistant' && !isMessageStreaming && hasCopyableText && (
         <CopyButton
@@ -820,36 +1048,59 @@ export const MessageItem = memo(function MessageItem({
         {renderGroupedBlocks()}
       </div>
 
+      {/* User metadata stays below the bubble and appears only on hover/focus. */}
+      {isConversationUserMessage && (message.timestamp || hasCopyableText) && (
+        <div className="message-user-actions">
+          {message.timestamp && (
+            <div className="message-timestamp-header">
+              {formatTime(message.timestamp)}
+            </div>
+          )}
+          {hasCopyableText && (
+            <CopyButton
+              className="message-copy-btn-inline"
+              isCopied={copiedMessageIndex === messageIndex}
+              onClick={handleCopyMessage}
+              copyLabel={t('markdown.copyMessage')}
+              copySuccessText={t('markdown.copySuccess')}
+            />
+          )}
+        </div>
+      )}
+
       {/* Duration and token display after last assistant message */}
-      {message.type === 'assistant' && !isMessageStreaming && typeof message.durationMs === 'number' && (
+      {message.type === 'assistant'
+        && !isMessageStreaming
+        && !hasCollapsibleProcess
+        && (typeof message.durationMs === 'number' || tokenInfo) && (
         <div className="message-duration">
           <span className="message-duration-inner">
-            <span className="message-duration-flag codicon codicon-clock"></span>
-            <span className="message-duration-cost">{t('chat.totalDuration')}</span>
-            <span className="message-duration-value">{formatDurationMs(message.durationMs)}</span>
-            {(() => {
-              const tokenInfo = extractTokenUsage(message.raw);
-              if (!tokenInfo) return null;
-              return (
-                <>
-                  <span className="message-duration-separator">·</span>
-                  <span
-                    className="message-duration-tokens"
-                    title={t('chat.tokenUsageDetail', {
-                      input: formatTokenCount(tokenInfo.nonCacheInputTokens),
-                      cacheWrite: formatTokenCount(tokenInfo.cacheCreationTokens),
-                      cacheRead: formatTokenCount(tokenInfo.cacheReadTokens),
-                      output: formatTokenCount(tokenInfo.outputTokens),
-                    })}
-                  >
-                    {t('chat.tokenUsage', {
-                      input: formatTokenCount(tokenInfo.inputTokens),
-                      output: formatTokenCount(tokenInfo.outputTokens),
-                    })}
-                  </span>
-                </>
-              );
-            })()}
+            {typeof message.durationMs === 'number' && (
+              <>
+                <span className="message-duration-flag codicon codicon-clock"></span>
+                <span className="message-duration-cost">{t('chat.totalDuration')}</span>
+                <span className="message-duration-value">{formatDurationMs(message.durationMs)}</span>
+              </>
+            )}
+            {typeof message.durationMs === 'number' && tokenInfo && (
+              <span className="message-duration-separator">·</span>
+            )}
+            {tokenInfo && (
+              <span
+                className="message-duration-tokens"
+                title={t('chat.tokenUsageDetail', {
+                  input: formatTokenCount(tokenInfo.nonCacheInputTokens),
+                  cacheWrite: formatTokenCount(tokenInfo.cacheCreationTokens),
+                  cacheRead: formatTokenCount(tokenInfo.cacheReadTokens),
+                  output: formatTokenCount(tokenInfo.outputTokens),
+                })}
+              >
+                {t('chat.tokenUsage', {
+                  input: formatTokenCount(tokenInfo.inputTokens),
+                  output: formatTokenCount(tokenInfo.outputTokens),
+                })}
+              </span>
+            )}
           </span>
         </div>
       )}

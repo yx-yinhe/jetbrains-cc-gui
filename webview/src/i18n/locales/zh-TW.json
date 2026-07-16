@@ -92,7 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[已上傳附件]",
     "streamingConnected": "{{provider}} 已成功連接，正在理解問題",
-    "executionProcess": { "label": "執行過程", "itemCount": "{{count}} 項", "completed": "已完成" },
+    "executionProcess": { "label": "執行過程", "readFile": "讀取了檔案", "readFiles": "讀取了多個檔案", "editedFile": "編輯了檔案", "editedFiles": "編輯了多個檔案", "singleCommand": "執行了命令", "multipleCommands": "執行了多個命令", "singleSearch": "進行了搜尋", "multipleSearches": "進行了多次搜尋", "singleTool": "呼叫了工具", "multipleTools": "呼叫了多個工具", "summarySeparator": "、", "summaryPairSeparator": "並", "summaryFinalSeparator": "並", "itemCount": "{{count}} 項", "completed": "已完成", "cancelled": "已手動取消", "permission_denied": "權限遭拒", "error": "執行出錯", "terminated": "意外終止" },
     "showEarlierMessages": "顯示之前的 {{count}} 則訊息",
     "totalDuration": "本次耗時",
     "tokenUsage": "輸入 {{input}} / 輸出 {{output}}",

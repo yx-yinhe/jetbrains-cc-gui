@@ -92,7 +92,7 @@
     "unknownFile": "Неизвестный файл",
     "attachmentsUploaded": "[Вложения загружены]",
     "streamingConnected": "{{provider}} обрабатывает запрос",
-    "executionProcess": { "label": "Процесс выполнения", "itemCount": "{{count}} элементов", "completed": "Завершено" },
+    "executionProcess": { "label": "Процесс выполнения", "readFile": "Прочитан файл", "readFiles": "Прочитано несколько файлов", "editedFile": "Изменён файл", "editedFiles": "Изменено несколько файлов", "singleCommand": "Выполнена команда", "multipleCommands": "Выполнено несколько команд", "singleSearch": "Выполнен поиск", "multipleSearches": "Выполнено несколько поисков", "singleTool": "Использован инструмент", "multipleTools": "Использовано несколько инструментов", "summarySeparator": ", ", "summaryPairSeparator": " и ", "summaryFinalSeparator": " и ", "itemCount": "{{count}} элементов", "completed": "Завершено", "cancelled": "Отменено вручную", "permission_denied": "Доступ запрещён", "error": "Ошибка выполнения", "terminated": "Неожиданно завершено" },
     "showEarlierMessages": "Показать предыдущие сообщения ({{count}})",
     "totalDuration": "Этот ответ занял",
     "tokenUsage": "вход {{input}} / выход {{output}}",

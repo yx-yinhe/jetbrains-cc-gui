@@ -783,6 +783,9 @@ interface Window {
    */
   __turnStartedAt?: number;
 
+  /** Explicit reason supplied before the active turn's stream-end callback. */
+  __pendingTurnTerminationReason?: import('./types').TurnTerminationReason;
+
   /**
    * Interval handle for the stream stall watchdog.
    * Stored on window so re-registration of streaming callbacks clears the previous interval.

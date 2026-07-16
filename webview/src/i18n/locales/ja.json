@@ -92,7 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[添付ファイルがアップロードされました]",
     "streamingConnected": "{{provider}}に接続しました、質問を理解しています",
-    "executionProcess": { "label": "実行プロセス", "itemCount": "{{count}} 件", "completed": "完了" },
+    "executionProcess": { "label": "実行プロセス", "readFile": "ファイルを読み取りました", "readFiles": "複数のファイルを読み取りました", "editedFile": "ファイルを編集しました", "editedFiles": "複数のファイルを編集しました", "singleCommand": "コマンドを実行しました", "multipleCommands": "複数のコマンドを実行しました", "singleSearch": "検索しました", "multipleSearches": "複数回検索しました", "singleTool": "ツールを使用しました", "multipleTools": "複数のツールを使用しました", "summarySeparator": "、", "summaryPairSeparator": "して", "summaryFinalSeparator": "して", "itemCount": "{{count}} 件", "completed": "完了", "cancelled": "手動でキャンセル", "permission_denied": "権限が拒否されました", "error": "実行エラー", "terminated": "予期せず終了" },
     "showEarlierMessages": "以前の{{count}}件のメッセージを表示",
     "totalDuration": "今回の応答時間",
     "tokenUsage": "入力 {{input}} / 出力 {{output}}",

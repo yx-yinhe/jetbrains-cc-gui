@@ -237,4 +237,22 @@ describe('useMessageProcessing', () => {
     expect(result.current.mergedMessages[1].type).toBe('user');
     expect(result.current.mergedMessages[1].content).toBe('/help');
   });
+
+  it('marks the partial assistant process as failed while keeping the error visible', () => {
+    const messages: ClaudeMessage[] = [
+      makeMessage('assistant', 'Partial progress', {
+        raw: { content: [{ type: 'text', text: 'Partial progress' }] } as any,
+      }),
+      makeMessage('error', 'Network connection failed'),
+    ];
+
+    const { result } = renderHook(() =>
+      useMessageProcessing({ messages, currentSessionId: 'session-1', t }),
+    );
+
+    expect(result.current.mergedMessages).toHaveLength(2);
+    expect(result.current.mergedMessages[0].turnTerminationReason).toBe('error');
+    expect(result.current.mergedMessages[1].type).toBe('error');
+    expect(result.current.mergedMessages[1].content).toBe('Network connection failed');
+  });
 });

@@ -437,13 +437,34 @@ export function useMessageSender({
    * Interrupt the current session
    */
   const interruptSession = useCallback(() => {
+    const interruptedAt = Date.now();
+    const turnStartedAt = window.__turnStartedAt;
+    const durationMs = typeof turnStartedAt === 'number' && turnStartedAt > 0
+      ? interruptedAt - turnStartedAt
+      : undefined;
+    window.__turnStartedAt = undefined;
+    window.__pendingTurnTerminationReason = 'cancelled';
+    setMessages((previous) => {
+      for (let index = previous.length - 1; index >= 0; index -= 1) {
+        if (previous[index].type !== 'assistant') continue;
+        const next = [...previous];
+        next[index] = {
+          ...next[index],
+          isStreaming: false,
+          turnTerminationReason: 'cancelled',
+          ...(durationMs != null ? { durationMs } : {}),
+        };
+        return next;
+      }
+      return previous;
+    });
     setLoading(false);
     setLoadingStartTime(null);
     setStreamingActive(false);
     isStreamingRef.current = false;
 
     sendBridgeEvent('interrupt_session');
-  }, []);
+  }, [isStreamingRef, setLoading, setLoadingStartTime, setMessages, setStreamingActive]);
 
   return {
     handleSubmit,

@@ -7,7 +7,7 @@
 
 import { startTransition } from 'react';
 import type { UseWindowCallbacksOptions } from '../../useWindowCallbacks';
-import type { ClaudeMessage, ClaudeRawMessage } from '../../../types';
+import type { ClaudeMessage, ClaudeRawMessage, TurnTerminationReason } from '../../../types';
 import { sendBridgeEvent } from '../../../utils/bridge';
 import { THROTTLE_INTERVAL } from '../../useStreamingMessages';
 import { parseSequence } from '../parseSequence';
@@ -248,7 +248,9 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
           `[StreamWatchdog] Stream stalled for ${elapsed}ms — forcing stream-end recovery`,
         );
         clearStallWatchdog();
-        // Trigger the same cleanup as onStreamEnd
+        // Trigger the same cleanup as onStreamEnd and retain the reason so a
+        // partial text-only response can still fold as an interrupted process.
+        window.__pendingTurnTerminationReason = 'terminated';
         if (typeof window.onStreamEnd === 'function') {
           window.onStreamEnd();
         }
@@ -272,6 +274,7 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
     window.__lastStreamEndedAt = undefined;
     // Clear idempotency guard for the new turn
     window.__streamEndProcessedTurnId = undefined;
+    window.__pendingTurnTerminationReason = undefined;
     // Record turn start time for duration calculation in onStreamEnd
     window.__turnStartedAt = Date.now();
     streamingContentRef.current = '';
@@ -328,7 +331,11 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
           // A non-empty older bubble carries real content from a turn whose
           // stream-end was lost — finalize it and open a fresh bubble.
           const finalized = [...prev];
-          finalized[prev.length - 1] = { ...last, isStreaming: false };
+          finalized[prev.length - 1] = {
+            ...last,
+            isStreaming: false,
+            turnTerminationReason: 'terminated',
+          };
           streamingMessageIndexRef.current = finalized.length;
           return [
             ...finalized,
@@ -424,21 +431,34 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
   // fully-resolved turn. Used both on normal stream end and on the turn-ended-
   // without-a-stream paths (errors, non-streaming turns) so a failed turn never
   // leaves the agent's last tool hanging forever.
-  const finalizeUnresolvedToolUses = () => {
+  const finalizeUnresolvedToolUses = (terminationReason?: TurnTerminationReason) => {
     if (!window.__deniedToolIds) {
       window.__deniedToolIds = new Set<string>();
     }
     setMessages((currentMessages) => {
+      let nextMessages = currentMessages;
+      if (terminationReason) {
+        for (let index = currentMessages.length - 1; index >= 0; index -= 1) {
+          if (currentMessages[index].type !== 'assistant') continue;
+          nextMessages = [...currentMessages];
+          nextMessages[index] = {
+            ...nextMessages[index],
+            isStreaming: false,
+            turnTerminationReason: terminationReason,
+          };
+          break;
+        }
+      }
       try {
-        const interruptedIds = collectUnresolvedToolUseIds(currentMessages);
-        if (interruptedIds.length === 0) return currentMessages;
+        const interruptedIds = collectUnresolvedToolUseIds(nextMessages);
+        if (interruptedIds.length === 0) return nextMessages;
         const denied = window.__deniedToolIds!;
         for (const id of interruptedIds) denied.add(id);
         // New array ref so the now-denied tool cards re-render out of "pending".
-        return [...currentMessages];
+        return nextMessages === currentMessages ? [...currentMessages] : nextMessages;
       } catch (error) {
         console.error('[Frontend] Failed to finalize unresolved tool ids:', error);
-        return currentMessages;
+        return nextMessages;
       }
     });
   };
@@ -471,11 +491,13 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
       // tool_use as denied: on an errored/aborted turn the tool_result never
       // arrives, and without this the last tool card spins forever. Idempotent
       // (a no-op when everything is already resolved or already denied).
-      finalizeUnresolvedToolUses();
+      const terminationReason = window.__pendingTurnTerminationReason;
+      finalizeUnresolvedToolUses(terminationReason);
       return;
     }
 
     clearStallWatchdog();
+    const terminationReason = window.__pendingTurnTerminationReason;
     const parsedSequence = parseSequence(sequence);
     // Only update minAcceptedUpdateSequence for valid positive sequences.
     // The fallback path sends sequence=-1 which means "no sequence info" —
@@ -494,6 +516,7 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
       setLoading(false);
       setLoadingStartTime(null);
       setIsThinking(false);
+      finalizeUnresolvedToolUses(terminationReason);
       window.__streamEndProcessedTurnId = currentTurnId > 0 ? currentTurnId : undefined;
       return;
     }
@@ -678,6 +701,7 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
           raw: finalRaw,
           isStreaming: false,
           __turnId: endedStreamingTurnId, // Keep __turnId for merge guard
+          ...(terminationReason ? { turnTerminationReason: terminationReason } : {}),
           ...(durationMs != null ? { durationMs } : {}),
         };
       }
@@ -812,7 +836,9 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
   // could do against pre-finalize state. Running a second setMessages here
   // would only produce a wasted re-render (React 18 batches the two calls, and
   // onStreamEnd is the last writer). See Issue #1315 investigation for details.
-  window.onPermissionDenied = () => {};
+  window.onPermissionDenied = () => {
+    window.__pendingTurnTerminationReason = 'permission_denied';
+  };
 
   // Block reset callback — clears streaming content refs when a new assistant
   // message starts within an ongoing stream (e.g., after tool_use loop iteration).

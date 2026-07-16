@@ -1,3 +1,31 @@
+##### **2026年7月16日（v0.4.7-yx.5）**
+
+English:
+
+✨ Features and improvements
+- Reliably merge completed-turn process fragments so commands, tool calls, thinking, and interim text collapse into one process section while the final answer remains visible.
+- Collapse partial process content after cancellation, permission denial, errors, watchdog recovery, and other unexpected termination paths; show the termination reason while keeping error messages outside the disclosure.
+- Collapse each consecutive tool interval between prose blocks under one summary title, such as "Edited multiple files and ran multiple commands"; repeated edits to the same file count once.
+- Keep the original edit, command, search, agent, and genuine batch-tool cards unchanged inside the summary disclosure.
+- Show duration and token usage in the process title when a process exists; answers without a process keep these details in the footer.
+- Move user-message time and copy actions below the bubble and reveal them on hover or keyboard focus.
+- Remove the divider between user and assistant messages, retaining only a subtle divider below the process section.
+- Mark this fork build as `v0.4.7-yx.5` with `MossX / yx-yinhe` vendor metadata.
+
+中文：
+
+✨ 新功能与改进
+- 可靠合并已完成轮次的过程片段，将命令、工具调用、思考和中间正文统一收进一个过程折叠区，最终回答保持正常显示。
+- 手动取消、权限拒绝、执行报错、看门狗恢复及其他意外终止后，部分过程也会折叠并显示终止原因，错误消息仍在折叠区外独立显示。
+- 两段正文之间的连续工具统一收进一个摘要标题，例如“编辑了多个文件并执行了多个命令”；同一文件重复编辑只计为一个文件。
+- 摘要折叠区内继续使用原有的编辑、命令、搜索、代理及真实批量工具卡样式。
+- 存在执行过程时，将耗时和输入输出 token 显示在过程标题中；没有过程时继续显示在回答底部。
+- 用户消息的时间和复制操作移到气泡下方，仅在鼠标悬停或键盘聚焦时显示。
+- 去掉用户消息与 AI 回答之间的分隔线，只在过程区下方保留一条不突出的分隔线。
+- 将本 fork 构建标记为 `v0.4.7-yx.5`，vendor 元数据保持为 `MossX / yx-yinhe`。
+
+---
+
 ##### **2026年7月15日（v0.4.7-yx.4）**
 
 English:

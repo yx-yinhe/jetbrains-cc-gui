@@ -19,6 +19,7 @@ import {
 import type { CompactNotificationItem } from '../types';
 import { MESSAGE_MERGE_CACHE_LIMIT } from './messageMergeCache';
 import { clearStaleStreamEndedMarker, hasRecentlyEndedTurnId } from './streamMarkers';
+import { BASH_TOOL_NAMES, isToolName } from './toolConstants';
 
 // ---------------------------------------------------------------------------
 // Re-exports — keep messageUtils.ts as the public barrel so existing imports
@@ -540,7 +541,8 @@ export function getContentBlocks(
 export function mergeConsecutiveAssistantMessages(
   messages: ClaudeMessage[],
   normalizeBlocksFn: (raw?: ClaudeRawMessage | string) => ClaudeContentBlock[] | null,
-  cache?: Map<string, { source: ClaudeMessage[]; merged: ClaudeMessage }>
+  cache?: Map<string, { source: ClaudeMessage[]; merged: ClaudeMessage }>,
+  options: { mergeCompletedTurnFragments?: boolean } = {},
 ): ClaudeMessage[] {
   if (messages.length === 0) return [];
 
@@ -564,7 +566,11 @@ export function mergeConsecutiveAssistantMessages(
     };
   };
 
-  const shouldMergeAssistantMessage = (previous: ClaudeMessage, next: ClaudeMessage): boolean => {
+  const shouldMergeAssistantMessage = (
+    previous: ClaudeMessage,
+    next: ClaudeMessage,
+    crossedToolResultBoundary: boolean,
+  ): boolean => {
     // Distinct streaming turns must stay visually separated even when the
     // backend emits adjacent assistant fragments during synchronization.
     // Block merge when either side has a __turnId and they differ.
@@ -573,15 +579,19 @@ export function mergeConsecutiveAssistantMessages(
     // streaming messages from true history messages.
     const prevTurnId = previous.__turnId;
     const nextTurnId = next.__turnId;
+    const sameStreamingTurn = prevTurnId !== undefined && prevTurnId === nextTurnId;
+    const canJoinCompletedTurn = options.mergeCompletedTurnFragments === true
+      && (sameStreamingTurn || crossedToolResultBoundary);
 
     // If either message has the recently-ended turn ID, block merging
-    if (hasRecentlyEndedTurnId(prevTurnId) || hasRecentlyEndedTurnId(nextTurnId)) {
+    if ((hasRecentlyEndedTurnId(prevTurnId) || hasRecentlyEndedTurnId(nextTurnId)) && !canJoinCompletedTurn) {
       return false;
     }
 
     // Block merge when either side has a __turnId and they differ
-    if ((prevTurnId !== undefined || nextTurnId !== undefined) &&
-        prevTurnId !== nextTurnId) {
+    if ((prevTurnId !== undefined || nextTurnId !== undefined)
+        && prevTurnId !== nextTurnId
+        && !canJoinCompletedTurn) {
       return false;
     }
 
@@ -592,7 +602,9 @@ export function mergeConsecutiveAssistantMessages(
     // tool_use boundary so that tool-execution and final answer appear as one block.
     // For streaming messages (with __turnId), keep tool_use separated from answer.
     const bothLackTurnId = prevTurnId === undefined && nextTurnId === undefined;
-    if (!bothLackTurnId && previousSummary.hasToolUse !== nextSummary.hasToolUse) {
+    if (!bothLackTurnId
+        && previousSummary.hasToolUse !== nextSummary.hasToolUse
+        && !canJoinCompletedTurn) {
       return false;
     }
 
@@ -628,6 +640,8 @@ export function mergeConsecutiveAssistantMessages(
     const contentParts: string[] = [];
     let previousAcceptedMessage: ClaudeMessage | null = null;
     let previousAcceptedBlocks: ClaudeContentBlock[] = [];
+    let assistantSourceIndex = 0;
+    let lastAssistantMessage = first;
 
     for (const msg of group) {
       if (msg.type !== 'assistant') {
@@ -638,6 +652,9 @@ export function mergeConsecutiveAssistantMessages(
         continue;
       }
       const blocks = normalizeBlocksFn(msg.raw) || [];
+      const sourceIndex = assistantSourceIndex;
+      assistantSourceIndex += 1;
+      lastAssistantMessage = msg;
 
       // A repeated backend completion can temporarily create two adjacent copies
       // of the same assistant snapshot. The group merger would otherwise turn
@@ -652,7 +669,18 @@ export function mergeConsecutiveAssistantMessages(
       }
 
       if (blocks.length > 0) {
-        combinedBlocks.push(...blocks);
+        combinedBlocks.push(...blocks.map((block) => {
+          if (block.type !== 'tool_use' || !isToolName(block.name, BASH_TOOL_NAMES)) {
+            return block;
+          }
+          return {
+            ...block,
+            input: {
+              ...block.input,
+              __sourceMessageIndex: sourceIndex,
+            },
+          };
+        }));
       }
       if (msg.content) {
         const trimmed = msg.content.trim();
@@ -666,11 +694,19 @@ export function mergeConsecutiveAssistantMessages(
 
     const rawBase: ClaudeRawMessage =
       (typeof first.raw === 'object' && first.raw ? { ...(first.raw as ClaudeRawMessage) } : ({} as ClaudeRawMessage));
+    const rawTail: ClaudeRawMessage =
+      (typeof lastAssistantMessage.raw === 'object' && lastAssistantMessage.raw
+        ? { ...(lastAssistantMessage.raw as ClaudeRawMessage) }
+        : ({} as ClaudeRawMessage));
 
     const nextRaw: ClaudeRawMessage = {
+      ...rawTail,
       ...rawBase,
+      turnUsage: rawTail.turnUsage ?? rawBase.turnUsage,
       content: combinedBlocks,
-      message: rawBase.message ? { ...rawBase.message, content: combinedBlocks } : rawBase.message,
+      message: rawTail.message || rawBase.message
+        ? { ...rawTail.message, ...rawBase.message, content: combinedBlocks }
+        : undefined,
     };
 
     const mergedContent = contentParts.join('\n');
@@ -679,7 +715,10 @@ export function mergeConsecutiveAssistantMessages(
       ...first,
       content: mergedContent,
       raw: nextRaw,
-      __turnId: first.__turnId,
+      __turnId: group.find((message) => message.__turnId !== undefined)?.__turnId,
+      turnTerminationReason: [...group].reverse()
+        .find((message) => message.turnTerminationReason !== undefined)?.turnTerminationReason,
+      durationMs: [...group].reverse().find((message) => typeof message.durationMs === 'number')?.durationMs,
     };
   };
 
@@ -696,18 +735,22 @@ export function mergeConsecutiveAssistantMessages(
     const assistantGroup: ClaudeMessage[] = [msg];
     let j = i + 1;
     let previousAssistant = msg;
+    let crossedToolResultBoundary = false;
 
     while (j < messages.length) {
       const candidate = messages[j];
 
       if (isToolResultOnlyUserMessage(candidate)) {
+        crossedToolResultBoundary = true;
         j += 1;
         continue;
       }
 
-      if (candidate.type === 'assistant' && shouldMergeAssistantMessage(previousAssistant, candidate)) {
+      if (candidate.type === 'assistant'
+          && shouldMergeAssistantMessage(previousAssistant, candidate, crossedToolResultBoundary)) {
         assistantGroup.push(candidate);
         previousAssistant = candidate;
+        crossedToolResultBoundary = false;
         j += 1;
         continue;
       }

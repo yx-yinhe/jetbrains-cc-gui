@@ -18,6 +18,7 @@ import type { ClaudeContentBlock, ClaudeMessage, ClaudeRawMessage } from '../typ
 export interface UseMessageProcessingOptions {
   messages: ClaudeMessage[];
   currentSessionId: string | null;
+  streamingActive?: boolean;
   t: TFunction;
 }
 
@@ -26,7 +27,12 @@ export interface UseMessageProcessingOptions {
  * Handles normalizeBlocks, getMessageText, shouldShowMessage, getContentBlocks,
  * and computes mergedMessages.
  */
-export function useMessageProcessing({ messages, currentSessionId, t }: UseMessageProcessingOptions) {
+export function useMessageProcessing({
+  messages,
+  currentSessionId,
+  streamingActive = false,
+  t,
+}: UseMessageProcessingOptions) {
   const localizeMessage = useMemo(() => createLocalizeMessage(t), [t]);
 
   // Cache for normalizeBlocks to avoid re-parsing unchanged messages
@@ -115,7 +121,8 @@ export function useMessageProcessing({ messages, currentSessionId, t }: UseMessa
     const merged = mergeConsecutiveAssistantMessages(
       messages,
       normalizeBlocks,
-      mergedAssistantMessageCache.current
+      mergedAssistantMessageCache.current,
+      { mergeCompletedTurnFragments: !streamingActive },
     );
 
     const visible: ClaudeMessage[] = [];
@@ -150,6 +157,15 @@ export function useMessageProcessing({ messages, currentSessionId, t }: UseMessa
       }
     }
 
+    // Keep backend error messages visible. Only mark the immediately preceding
+    // assistant fragment so its partial process folds under an error title.
+    for (let index = 1; index < visible.length; index += 1) {
+      if (visible[index].type !== MESSAGE_TYPES.ERROR) continue;
+      const previous = visible[index - 1];
+      if (previous.type !== MESSAGE_TYPES.ASSISTANT || previous.turnTerminationReason) continue;
+      visible[index - 1] = { ...previous, turnTerminationReason: 'error' };
+    }
+
     // Post-process: ensure /compact command appears before its compact
     // summary notification. In CLI output the isCompactSummary message can
     // precede the /compact command in the JSONL file, so after filtering
@@ -178,7 +194,7 @@ export function useMessageProcessing({ messages, currentSessionId, t }: UseMessa
     // Note: isTaskNotificationOnlyMessage, hasNonHumanOrigin, isCompactRelatedMessage
     // are stable module-level pure functions imported from messageUtils — their references
     // never change, so they don't need to be in the dependency array.
-  }, [messages, shouldShowMessageCached, normalizeBlocks]);
+  }, [messages, shouldShowMessageCached, normalizeBlocks, streamingActive]);
 
   return {
     normalizeBlocks,

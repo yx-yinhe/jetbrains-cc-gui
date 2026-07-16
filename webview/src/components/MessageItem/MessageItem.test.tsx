@@ -40,8 +40,25 @@ const t = ((key: string, opts?: Record<string, string>) => {
     'chat.tokenUsage': '输入 {{input}} / 输出 {{output}}',
     'chat.tokenUsageDetail': '本轮合计 — 输入 {{input}} · 缓存写入 {{cacheWrite}} · 缓存读取 {{cacheRead}} · 输出 {{output}}',
     'chat.executionProcess.label': '执行过程',
+    'chat.executionProcess.readFile': '读取了文件',
+    'chat.executionProcess.readFiles': '读取了多个文件',
+    'chat.executionProcess.editedFile': '编辑了文件',
+    'chat.executionProcess.editedFiles': '编辑了多个文件',
+    'chat.executionProcess.singleCommand': '执行了命令',
+    'chat.executionProcess.multipleCommands': '执行了多个命令',
+    'chat.executionProcess.singleSearch': '进行了搜索',
+    'chat.executionProcess.multipleSearches': '进行了多次搜索',
+    'chat.executionProcess.singleTool': '调用了工具',
+    'chat.executionProcess.multipleTools': '调用了多个工具',
+    'chat.executionProcess.summarySeparator': '、',
+    'chat.executionProcess.summaryPairSeparator': '并',
+    'chat.executionProcess.summaryFinalSeparator': '并',
     'chat.executionProcess.itemCount': '{{count}} 项',
     'chat.executionProcess.completed': '已完成',
+    'chat.executionProcess.cancelled': '已手动取消',
+    'chat.executionProcess.permission_denied': '权限被拒绝',
+    'chat.executionProcess.error': '执行出错',
+    'chat.executionProcess.terminated': '意外终止',
   };
   let result = translations[key] ?? key;
   if (opts) {
@@ -75,6 +92,7 @@ interface RenderMessageOptions {
   isLast?: boolean;
   streamingActive?: boolean;
   processCollapseEnabled?: boolean;
+  currentProvider?: string;
 }
 
 function buildMessageItem(message: ClaudeMessage, options: RenderMessageOptions = {}) {
@@ -92,6 +110,7 @@ function buildMessageItem(message: ClaudeMessage, options: RenderMessageOptions 
       findToolResult={findToolResult}
       extractMarkdownContent={extractMarkdownContent}
       processCollapseEnabled={options.processCollapseEnabled}
+      currentProvider={options.currentProvider}
     />
   );
 }
@@ -119,6 +138,8 @@ describe('MessageItem copy button visibility', () => {
 
     renderMessageItem(message);
 
+    fireEvent.click(screen.getByRole('button', { name: /意外终止/ }));
+    fireEvent.click(screen.getByRole('button', { name: /执行了命令/ }));
     expect(screen.getByTestId('bash-tool-block')).toBeTruthy();
     expect(screen.queryByTestId('content-block-text')).toBeNull();
     expect(screen.queryByRole('button', { name: '复制消息' })).toBeNull();
@@ -146,6 +167,7 @@ describe('MessageItem copy button visibility', () => {
     renderMessageItem(message);
 
     fireEvent.click(screen.getByRole('button', { name: /执行过程/ }));
+    fireEvent.click(screen.getByRole('button', { name: /执行了命令/ }));
     expect(screen.getByTestId('bash-tool-block')).toBeTruthy();
     expect(screen.getByTestId('content-block-text')).toBeTruthy();
     expect(screen.getByRole('button', { name: '复制消息' })).toBeTruthy();
@@ -174,8 +196,60 @@ describe('MessageItem copy button visibility', () => {
 
     renderMessageItem(message);
 
+    fireEvent.click(screen.getByRole('button', { name: /意外终止/ }));
+    fireEvent.click(screen.getByRole('button', { name: /执行了多个命令/ }));
     expect(screen.getByTestId('bash-tool-group-block')).toBeTruthy();
     expect(screen.queryAllByTestId('content-block-tool_use')).toHaveLength(0);
+  });
+
+  it('renders independent Codex commands separately instead of calling them a batch', () => {
+    const message: ClaudeMessage = {
+      type: 'assistant',
+      raw: {
+        content: [
+          { type: 'tool_use', id: 'tool-1', name: 'exec_command', input: { command: 'git status' } },
+          { type: 'tool_use', id: 'tool-2', name: 'exec_command', input: { command: 'git diff' } },
+          { type: 'text', text: 'Done.' },
+        ],
+      } as any,
+    };
+
+    renderMessageItem(message, { currentProvider: 'codex' });
+
+    const processToggle = screen.getByRole('button', { name: /执行过程/ });
+    fireEvent.click(processToggle);
+    const commandToggle = screen.getByRole('button', { name: /执行了多个命令/ });
+    expect(commandToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByTestId('bash-tool-block')).toBeNull();
+    fireEvent.click(commandToggle);
+    expect(screen.queryByTestId('bash-tool-group-block')).toBeNull();
+    expect(screen.getAllByTestId('bash-tool-block')).toHaveLength(2);
+  });
+
+  it('uses one summary disclosure for consecutive edits and commands between prose', () => {
+    const message: ClaudeMessage = {
+      type: 'assistant',
+      raw: {
+        content: [
+          { type: 'text', text: 'Working on the change.' },
+          { type: 'tool_use', id: 'edit-1', name: 'edit_file', input: { file_path: 'a.ts' } },
+          { type: 'tool_use', id: 'edit-2', name: 'write_to_file', input: { file_path: 'b.ts' } },
+          { type: 'tool_use', id: 'cmd-1', name: 'exec_command', input: { command: 'git status' } },
+          { type: 'tool_use', id: 'cmd-2', name: 'exec_command', input: { command: 'git diff' } },
+          { type: 'text', text: 'Done.' },
+        ],
+      } as any,
+    };
+
+    renderMessageItem(message, { currentProvider: 'codex' });
+    fireEvent.click(screen.getByRole('button', { name: /执行过程/ }));
+
+    const toolToggle = screen.getByRole('button', { name: /编辑了多个文件并执行了多个命令/ });
+    expect(toolToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(document.querySelectorAll('.execution-command-group')).toHaveLength(1);
+    fireEvent.click(toolToggle);
+    expect(screen.getByTestId('edit-tool-group-block')).toBeTruthy();
+    expect(screen.getAllByTestId('bash-tool-block')).toHaveLength(2);
   });
 });
 
@@ -189,6 +263,10 @@ describe('assistant execution process folding', () => {
         { type: 'tool_use', id: 'tool-1', name: 'exec_command', input: { command: 'git status' } },
         { type: 'text', text: 'The change is complete.' },
       ],
+      turnUsage: {
+        input_tokens: 1200,
+        output_tokens: 456,
+      },
     } as any,
   };
 
@@ -211,6 +289,8 @@ describe('assistant execution process folding', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     expect(screen.queryByText('thinking')).toBeNull();
     expect(screen.getByText('The change is complete.')).toBeTruthy();
+    expect(toggle.textContent).toContain('输入 1.2K / 输出 456');
+    expect(document.querySelector('.message-duration')).toBeNull();
 
     fireEvent.click(toggle);
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
@@ -243,6 +323,28 @@ describe('assistant execution process folding', () => {
     view.rerender(buildMessageItem(executionMessage, { isLast: false, streamingActive: true }));
 
     expect(screen.getByRole('button', { name: /执行过程/ }).getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('collapses a cancelled turn under its reason without requiring a final answer', () => {
+    const cancelledMessage: ClaudeMessage = {
+      type: 'assistant',
+      turnTerminationReason: 'cancelled',
+      raw: {
+        content: [
+          { type: 'text', text: 'Partial progress.' },
+          { type: 'tool_use', id: 'tool-1', name: 'exec_command', input: { command: 'git status' } },
+        ],
+      } as any,
+    };
+
+    renderMessageItem(cancelledMessage);
+
+    const toggle = screen.getByRole('button', { name: /已手动取消/ });
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByText('Partial progress.')).toBeNull();
+    fireEvent.click(toggle);
+    expect(screen.getByText('Partial progress.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /执行了命令/ })).toBeTruthy();
   });
 });
 

@@ -92,7 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[Archivos adjuntos cargados]",
     "streamingConnected": "{{provider}} conectado, entendiendo tu pregunta",
-    "executionProcess": { "label": "Proceso de ejecución", "itemCount": "{{count}} elementos", "completed": "Completado" },
+    "executionProcess": { "label": "Proceso de ejecución", "readFile": "Leyó un archivo", "readFiles": "Leyó varios archivos", "editedFile": "Editó un archivo", "editedFiles": "Editó varios archivos", "singleCommand": "Ejecutó un comando", "multipleCommands": "Ejecutó varios comandos", "singleSearch": "Realizó una búsqueda", "multipleSearches": "Realizó varias búsquedas", "singleTool": "Usó una herramienta", "multipleTools": "Usó varias herramientas", "summarySeparator": ", ", "summaryPairSeparator": " y ", "summaryFinalSeparator": " y ", "itemCount": "{{count}} elementos", "completed": "Completado", "cancelled": "Cancelado manualmente", "permission_denied": "Permiso denegado", "error": "Error de ejecución", "terminated": "Finalización inesperada" },
     "showEarlierMessages": "Mostrar {{count}} mensajes anteriores",
     "totalDuration": "Esta respuesta tardó",
     "tokenUsage": "{{input}} entrada / {{output}} salida",

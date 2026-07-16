@@ -92,7 +92,7 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[Attachments Uploaded]",
     "streamingConnected": "{{provider}} connected, understanding your question",
-    "executionProcess": { "label": "Execution process", "itemCount": "{{count}} items", "completed": "Completed" },
+    "executionProcess": { "label": "Execution process", "readFile": "Read a file", "readFiles": "Read multiple files", "editedFile": "Edited a file", "editedFiles": "Edited multiple files", "singleCommand": "Ran a command", "multipleCommands": "Ran multiple commands", "singleSearch": "Searched", "multipleSearches": "Searched multiple times", "singleTool": "Used a tool", "multipleTools": "Used multiple tools", "summarySeparator": ", ", "summaryPairSeparator": " and ", "summaryFinalSeparator": ", and ", "itemCount": "{{count}} items", "completed": "Completed", "cancelled": "Manually cancelled", "permission_denied": "Permission denied", "error": "Execution failed", "terminated": "Unexpectedly terminated" },
     "showEarlierMessages": "Show {{count}} earlier messages",
     "totalDuration": "This reply took",
     "tokenUsage": "{{input}} in / {{output}} out",
