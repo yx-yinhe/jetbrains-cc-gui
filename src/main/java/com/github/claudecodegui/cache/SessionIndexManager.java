@@ -30,12 +30,10 @@ public class SessionIndexManager {
     // total (sum 1..N-1 * base) within ~100ms to avoid blocking concurrent index reads/writes.
     private static final long INDEX_REPLACE_RETRY_DELAY_MS = 10L;
 
-    // v5 (2026-06): entrypoint (added in v4) could be persisted as null by interim v4
-    // builds that bumped the version before the extraction pipeline was fully wired.
-    // Restore paths trust index entries while the file mtime is unchanged, so those
-    // nulls would never self-heal. Bumping once more forces a clean rebuild that
-    // populates entrypoint for every session.
-    private static final int INDEX_VERSION = 5;
+    // v6 (2026-07): Codex multi-agent v2 persists sub-agent threads beside normal
+    // sessions. They cannot accept direct user input, so rebuild old indexes to
+    // remove entries that could otherwise be resumed from the history panel.
+    private static final int INDEX_VERSION = 6;
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final Path codemossCacheDir;
@@ -111,6 +109,7 @@ public class SessionIndexManager {
         public long firstTimestamp;
         public long fileSize;
         public String cwd;  // Codex only
+        public String threadSource;  // Codex only ("user" or "subagent")
         // Session entrypoint ("cli", "sdk-cli", ...). "" records that extraction ran
         // and the file carries none; null means it was never extracted (pre-v5 data or
         // a writer bug) and the Claude incremental scan re-reads the file to heal it.

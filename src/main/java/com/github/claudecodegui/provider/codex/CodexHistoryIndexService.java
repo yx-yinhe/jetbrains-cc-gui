@@ -199,7 +199,10 @@ class CodexHistoryIndexService {
 
         List<CodexHistoryReader.SessionInfo> sessions = new ArrayList<>();
         for (SessionIndexManager.SessionIndexEntry entry : restoredEntriesByPath.values()) {
-            sessions.add(restoreEntry(entry));
+            CodexHistoryReader.SessionInfo restored = restoreEntry(entry);
+            if (this.parser.isValidSession(restored)) {
+                sessions.add(restored);
+            }
         }
 
         List<ReadResult> refreshed = batchReadLite(changedFiles);
@@ -228,6 +231,7 @@ class CodexHistoryIndexService {
         session.firstTimestamp = entry.firstTimestamp;
         session.cwd = entry.cwd;
         session.fileSize = entry.fileSize;
+        session.threadSource = entry.threadSource;
         return session;
     }
 
@@ -417,6 +421,7 @@ class CodexHistoryIndexService {
         session.firstTimestamp = liteInfo.createdAt;
         session.cwd = liteInfo.cwd;
         session.fileSize = liteInfo.fileSize;
+        session.threadSource = liteInfo.threadSource;
         return session;
     }
 
@@ -452,7 +457,10 @@ class CodexHistoryIndexService {
             session.firstTimestamp = entry.firstTimestamp;
             session.cwd = entry.cwd;
             session.fileSize = entry.fileSize;
-            sessions.add(session);
+            session.threadSource = entry.threadSource;
+            if (this.parser.isValidSession(session)) {
+                sessions.add(session);
+            }
         }
         return deduplicateSessions(sessions);
     }
@@ -477,6 +485,7 @@ class CodexHistoryIndexService {
             entry.firstTimestamp = session.firstTimestamp;
             entry.cwd = session.cwd;
             entry.fileSize = session.fileSize;
+            entry.threadSource = session.threadSource;
 
             FileMeta meta = sessionFiles.get(session.sessionId);
             if (meta != null && meta.path != null) {
@@ -534,6 +543,10 @@ class CodexHistoryIndexService {
         if ((merged.cwd == null || merged.cwd.isEmpty()) && fallback.cwd != null && !fallback.cwd.isEmpty()) {
             merged.cwd = fallback.cwd;
         }
+        if ((merged.threadSource == null || merged.threadSource.isEmpty())
+                && fallback.threadSource != null && !fallback.threadSource.isEmpty()) {
+            merged.threadSource = fallback.threadSource;
+        }
         merged.fileSize = Math.max(existing.fileSize, incoming.fileSize);
 
         return merged;
@@ -548,6 +561,7 @@ class CodexHistoryIndexService {
         copy.firstTimestamp = session.firstTimestamp;
         copy.cwd = session.cwd;
         copy.fileSize = session.fileSize;
+        copy.threadSource = session.threadSource;
         return copy;
     }
 

@@ -73,6 +73,13 @@ class CodexHistoryParser {
                             session.cwd = TextSanitizer.sanitizeInvalidSurrogates(msg.payload.get("cwd").getAsString());
                         }
 
+                        if (msg.payload.has("thread_source") && !msg.payload.get("thread_source").isJsonNull()) {
+                            session.threadSource = msg.payload.get("thread_source").getAsString();
+                        } else if (msg.payload.has("source") && msg.payload.get("source").isJsonObject()
+                                && msg.payload.getAsJsonObject("source").has("subagent")) {
+                            session.threadSource = "subagent";
+                        }
+
                         if (msg.payload.has("timestamp")) {
                             String ts = msg.payload.get("timestamp").getAsString();
                             session.firstTimestamp = parseTimestamp(ts);
@@ -116,6 +123,9 @@ class CodexHistoryParser {
     }
 
     boolean isValidSession(CodexHistoryReader.SessionInfo session) {
+        if (session == null || "subagent".equals(session.threadSource)) {
+            return false;
+        }
         if (session.title == null || session.title.isEmpty()) {
             return false;
         }

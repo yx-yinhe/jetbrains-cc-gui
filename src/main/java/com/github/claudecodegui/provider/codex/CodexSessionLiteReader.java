@@ -24,6 +24,10 @@ public class CodexSessionLiteReader {
             Pattern.CASE_INSENSITIVE
     );
 
+    private static final Pattern SUBAGENT_SOURCE_PATTERN = Pattern.compile(
+            "\"source\"\\s*:\\s*\\{\\s*\"subagent\"\\s*:"
+    );
+
     private final SessionLiteReader liteReader;
 
     public CodexSessionLiteReader() {
@@ -41,6 +45,7 @@ public class CodexSessionLiteReader {
         public final int messageCount;
         public final long createdAt;
         public final String cwd;
+        public final String threadSource;
 
         public CodexLiteSessionInfo(
                 String sessionId,
@@ -49,7 +54,8 @@ public class CodexSessionLiteReader {
                 long fileSize,
                 int messageCount,
                 long createdAt,
-                String cwd
+                String cwd,
+                String threadSource
         ) {
             this.sessionId = sessionId;
             this.summary = summary;
@@ -58,6 +64,7 @@ public class CodexSessionLiteReader {
             this.messageCount = messageCount;
             this.createdAt = createdAt;
             this.cwd = cwd;
+            this.threadSource = threadSource;
         }
     }
 
@@ -105,6 +112,10 @@ public class CodexSessionLiteReader {
 
         // Extract cwd from session_meta
         String cwd = this.extractSessionMetaField(lite.head, "cwd");
+        String threadSource = this.extractSessionMetaField(lite.head, "thread_source");
+        if (threadSource == null && SUBAGENT_SOURCE_PATTERN.matcher(lite.head).find()) {
+            threadSource = "subagent";
+        }
 
         // Extract timestamp from session_meta for createdAt
         String timestamp = this.extractSessionMetaField(lite.head, "timestamp");
@@ -141,7 +152,8 @@ public class CodexSessionLiteReader {
                 lite.size,
                 messageCount,
                 createdAt,
-                cwd
+                cwd,
+                threadSource
         );
     }
 

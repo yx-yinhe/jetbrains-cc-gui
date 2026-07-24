@@ -71,6 +71,40 @@ public class CodexSessionLiteReaderTest {
     }
 
     @Test
+    public void parseSessionInfoFromLite_extractsSubagentThreadSource() {
+        String sessionId = "thread_child123456";
+        SessionLiteReader.LiteSessionFile lite = new SessionLiteReader.LiteSessionFile(
+                System.currentTimeMillis(), 1000,
+                "{\"type\":\"session_meta\",\"payload\":{\"id\":\"thread_child123456\","
+                        + "\"thread_source\":\"subagent\",\"parent_thread_id\":\"thread_main123456\"}}\n"
+                        + "{\"type\":\"event_msg\",\"payload\":{\"type\":\"user_message\","
+                        + "\"message\":\"Delegated work\"}}\n",
+                ""
+        );
+
+        CodexSessionLiteReader.CodexLiteSessionInfo info = reader.parseSessionInfoFromLite(sessionId, lite);
+        assertNotNull(info);
+        assertEquals("subagent", info.threadSource);
+    }
+
+    @Test
+    public void parseSessionInfoFromLite_detectsNestedSubagentSource() {
+        String sessionId = "thread_child123456";
+        SessionLiteReader.LiteSessionFile lite = new SessionLiteReader.LiteSessionFile(
+                System.currentTimeMillis(), 1000,
+                "{\"type\":\"session_meta\",\"payload\":{\"id\":\"thread_child123456\","
+                        + "\"source\": { \"subagent\": { \"other\": \"guardian\" } }}}\n"
+                        + "{\"type\":\"event_msg\",\"payload\":{\"type\":\"user_message\","
+                        + "\"message\":\"Delegated work\"}}\n",
+                ""
+        );
+
+        CodexSessionLiteReader.CodexLiteSessionInfo info = reader.parseSessionInfoFromLite(sessionId, lite);
+        assertNotNull(info);
+        assertEquals("subagent", info.threadSource);
+    }
+
+    @Test
     public void parseSessionInfoFromLite_stripsSystemTags() {
         String sessionId = "thread_abc123def456";
         SessionLiteReader.LiteSessionFile lite = new SessionLiteReader.LiteSessionFile(

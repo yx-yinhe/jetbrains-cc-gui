@@ -28,7 +28,7 @@ import {
   buildCodexCliEnvironment,
   buildErrorPayload
 } from './codex-utils.js';
-import { collectAgentsInstructions } from './codex-agents-loader.js';
+import { collectAgentsInstructions, resolveCodexResumeThreadId } from './codex-agents-loader.js';
 import { createInitialEventState, processCodexEventStream } from './codex-event-handler.js';
 
 // ---------------------------------------------------------------------------
@@ -175,7 +175,15 @@ export async function sendMessage(
     }
 
     // CRITICAL: Only set working directory for NEW threads
-    const isResumingThread = threadId && threadId.trim() !== '';
+    const requestedThreadId = typeof threadId === 'string' ? threadId.trim() : '';
+    const resumeThreadId = requestedThreadId
+      ? resolveCodexResumeThreadId(requestedThreadId)
+      : '';
+    const isResumingThread = resumeThreadId !== '';
+
+    if (resumeThreadId && resumeThreadId !== requestedThreadId) {
+      logWarn('Codex', `Redirecting sub-agent thread ${requestedThreadId} to parent ${resumeThreadId}`);
+    }
 
     if (!isResumingThread) {
       if (cwd && cwd.trim() !== '') {
@@ -210,8 +218,8 @@ export async function sendMessage(
 
     let thread;
     if (isResumingThread) {
-      console.log('[DEBUG] Resuming thread:', threadId);
-      thread = codex.resumeThread(threadId, threadOptions);
+      console.log('[DEBUG] Resuming thread:', resumeThreadId);
+      thread = codex.resumeThread(resumeThreadId, threadOptions);
     } else {
       console.log('[DEBUG] Starting new thread');
       thread = codex.startThread(threadOptions);
@@ -270,7 +278,7 @@ export async function sendMessage(
 
     const config = {
       cwd: workingDirectory,
-      threadId,
+      threadId: resumeThreadId,
       threadOptions,
       normalizedPermissionMode,
       turnAbortController,

@@ -55,6 +55,7 @@ public class CodexHistoryReader {
         public long firstTimestamp;
         public String cwd;
         public long fileSize;
+        public String threadSource;
     }
 
     /**
